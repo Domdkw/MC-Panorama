@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title></title>
+    <style>body{margin: 0;} canvas{position: absolute;display: block;filter: contrast(1.6);z-index: -1;}</style>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <audio id="Playmusic"></audio>
+    <main id="title">
+      <div>
+        <img class="logo" src="Global-Header_MCCB-Logo_300x51.svg" alt="logo" />
+      </div>
+      <div class="btn-area">
+        <div class="all">
+          <button>~~~</button>
+          <button id="server">服务器</button>
+          <button id="mod">MOD</button>
+        </div>
+        <div class="half">
+          <button id="home_page" onclick="cd('www.prcooker.asia', false)">主页</button>
+          <div class="sound_range_div">
+            <div>            
+              <span id="bg_music_text">音乐：</span>
+              <span id="sound_state">off</span></di>
+            </div>
+          <input type="range" id="volume_slider" min="0" max="1" step="0.01" value="0">
+        </div>
+        </div>
+      </div>
+    </main>
+    <script type="module" src="mc-background.js"></script>
+    <script type="text/javascript" src="playsound.js"></script>
+    <script>function cd(url,tab){if(tab){window.open('//'+url,'_blank')}else{window.location.href='//'+url}}</script>
+    <script src="page.js"></script>
+  </body>
+</html>
