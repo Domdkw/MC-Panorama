@@ -11,7 +11,7 @@ var theme = "day";
 if (hours <= 7 && hours > 18) {
   theme = "night";
 }
-const img_url = img_key[Math.floor(Math.random() * img_key.length)];
+const img_date = img_key[Math.floor(Math.random() * img_key.length)];
 
 
 const velocity = 0.0004;
@@ -51,7 +51,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
   function loadMaterial(n) {
     return new THREE.MeshBasicMaterial({
-      map: textureLoader.load(`./${theme}/${img_url}/panorama_${n}.png`),
+      map: textureLoader.load(`./panorama/${img_date}_${theme}_${n}.png`),
       color: new THREE.Color(0xffffff).multiplyScalar(0.5),
     });
   }
