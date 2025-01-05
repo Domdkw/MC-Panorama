@@ -8,7 +8,7 @@ const img_key = [
 const currentDate = new Date();
 const hours = currentDate.getHours();
 var theme = "day";
-if (hours <= 7 && hours > 18) {
+if (hours <= 7 || hours > 18) {
   theme = "night";
 }
 const img_date = img_key[Math.floor(Math.random() * img_key.length)];
