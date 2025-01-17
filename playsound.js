@@ -11,15 +11,17 @@ const randomIndex = Math.floor(Math.random() * audioFiles.length);
 const selectedAudioFile = audioFiles[randomIndex];
 audio.src = selectedAudioFile;
 
-const clickAudio = new Audio('Click.ogg.mp3');
-const clickVolume = 0.5;
-clickAudio.volume = clickVolume;
+// 定义一个变量来保存当前滑块的音量值
+let currentVolume = parseFloat(volumeSlider.value);
+
+// 定义一个变量来保存点击音效的 Audio 对象
+let clickAudio = null;
 
 volumeSlider.addEventListener('input', function () {
-  const volume = parseFloat(volumeSlider.value);
-  audio.volume = volume;
-  soundstate.textContent = Math.round(volume * 100) + '%';
-  if (volume > 0) {
+  currentVolume = parseFloat(volumeSlider.value); // 更新当前音量值
+  audio.volume = currentVolume;
+  soundstate.textContent = Math.round(currentVolume * 100) + '%';
+  if (currentVolume > 0) {
     if (audio.paused) {
       audio.play();
     }
@@ -30,13 +32,16 @@ volumeSlider.addEventListener('input', function () {
 
 document.body.addEventListener('click', function (Click_ogg) {
   if (Click_ogg.target.tagName === 'BUTTON') {
-    if (clickVolume > 0) {
+    if (currentVolume > 0) { // 只有在音量大于 0 时才处理点击音效
+      if (!clickAudio) {
+        // 如果 clickAudio 还没有创建，则创建一个新的 Audio 对象
+        clickAudio = new Audio('Click.ogg.mp3');
+      }
+      clickAudio.volume = currentVolume;
       if (clickAudio.paused) {
-        clickAudio.currentTime = 0; // 重置播放位置
+        clickAudio.currentTime = 0; // 重置播放时间到开头
         clickAudio.play();
       }
-    } else {
-      clickAudio.pause();
     }
   }
 });
