@@ -27,11 +27,26 @@
               <span id="bg_music_text">音乐：</span>
               <span id="sound_state">off</span></di>
             </div>
-          <input type="range" id="volume_slider" min="0" max="1" step="0.01" value="0">
-        </div>
+            <input type="range" id="volume_slider" min="0" max="1" step="0.01" value="0">
+          </div>
+          <button id="lang_btn" title="language语言" onclick="showlang()"><img src="lang-ico.png" alt="lang-ico"></button>
         </div>
       </div>
     </main>
+    <section id="lang-div" class="dirt unselectable">
+      <span id="lang_title" class="detailed-title">选择语言</span>
+      <hr class="lang-hr">
+      <div class="language-list">
+        <span id="zh-CN">简体中文</span>
+        <span id="zh-TW">繁體中文（中国台湾）</span>
+        <span id="en-US">English</span>
+      </div>
+      <hr class="lang-hr">
+      <div class="lang-btn-half">
+        <button onclick="unicode()"><span id="Use_Unicode_fonts">使用Unicode字体：</span><span id="ttf-state">off</span></button>
+        <button id="lang_done" onclick="hiddenlang()">完成</button>
+      </div>
+    </section>
     <script type="module" src="mc-background.js"></script>
     <script type="text/javascript" src="playsound.js"></script>
     <script>function cd(url,tab){if(tab){window.open('//'+url,'_blank')}else{window.location.href='//'+url}}</script>
