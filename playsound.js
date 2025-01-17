@@ -14,12 +14,25 @@ volumeSlider.addEventListener('input', function () {
   const volume = parseFloat(volumeSlider.value);
   audio.volume = volume;
   soundstate.textContent = Math.round(volume * 100) + '%';
-  volumeSlider.style.setProperty('--value', volumeSlider.value * 100 + '%'); // 移动到此处，每次滑块值改变时更新样式变量
   if (volume > 0) {
     if (audio.paused) {
       audio.play();
     }
   } else {
     audio.pause();
+  }
+});
+document.body.addEventListener('click', function (Click_ogg) {
+  if (Click_ogg.target.tagName === 'BUTTON') {
+    const volume = 0.5;
+    var Click_ogg_audio = new Audio('Click.ogg.mp3');
+    Click_ogg_audio.volume = volume;
+    if (volume > 0) {
+      if (Click_ogg_audio.paused) {
+        Click_ogg_audio.play();
+      }
+    } else {
+      Click_ogg_audio.pause();
+    }
   }
 });
