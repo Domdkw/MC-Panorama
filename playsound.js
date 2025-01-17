@@ -10,6 +10,11 @@ const audioFiles = [
 const randomIndex = Math.floor(Math.random() * audioFiles.length);
 const selectedAudioFile = audioFiles[randomIndex];
 audio.src = selectedAudioFile;
+
+const clickAudio = new Audio('Click.ogg.mp3');
+const clickVolume = 0.5;
+clickAudio.volume = clickVolume;
+
 volumeSlider.addEventListener('input', function () {
   const volume = parseFloat(volumeSlider.value);
   audio.volume = volume;
@@ -22,17 +27,16 @@ volumeSlider.addEventListener('input', function () {
     audio.pause();
   }
 });
+
 document.body.addEventListener('click', function (Click_ogg) {
   if (Click_ogg.target.tagName === 'BUTTON') {
-    const volume = 0.5;
-    var Click_ogg_audio = new Audio('Click.ogg.mp3');
-    Click_ogg_audio.volume = volume;
-    if (volume > 0) {
-      if (Click_ogg_audio.paused) {
-        Click_ogg_audio.play();
+    if (clickVolume > 0) {
+      if (clickAudio.paused) {
+        clickAudio.currentTime = 0; // 重置播放位置
+        clickAudio.play();
       }
     } else {
-      Click_ogg_audio.pause();
+      clickAudio.pause();
     }
   }
 });
