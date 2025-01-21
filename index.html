@@ -21,7 +21,7 @@
           <button id="mod">MOD</button>
         </div>
         <div class="half">
-          <button id="home_page" onclick="cd('www.prcooker.asia', false)">主页</button>
+          <button id="home_page" onclick="cd('\/\/www.prcooker.asia')">主页</button>
           <div class="sound_range_div">
             <div>            
               <span id="bg_music_text">音乐：</span>
@@ -47,9 +47,21 @@
         <button id="lang_done" onclick="hiddenlang()">完成</button>
       </div>
     </section>
+    <section id="cd-page">
+      <div class="cd-main">
+        <div class="cd-title">
+          <span id="cd_text_info">这指向一个网页链接，不能确定其安全性，是否进行跳转？</span>
+          <span id="cd_text_link" style="color: #2530ff;">https://www.prcooker.asia</span>
+        </div>
+        <div class="cd-buttons">
+          <button id="openurl">打开此网站</button>
+          <button id="urlcopy">复制到剪贴板</button>
+          <button id="urlcancel" onclick="cdclose()">取消</button>
+        </div>
+      </div>
+    </section>
     <script type="module" src="mc-background.js"></script>
     <script type="text/javascript" src="playsound.js"></script>
-    <script>function cd(url,tab){if(tab){window.open('//'+url,'_blank')}else{window.location.href='//'+url}}</script>
     <script src="page.js"></script>
   </body>
 </html>

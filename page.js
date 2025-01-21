@@ -1,4 +1,5 @@
 const bodyElement = document.body;
+const title_main = document.getElementById("title");
 
 //region language
 
@@ -36,7 +37,6 @@ function handleLanguageData(obj){
 
 //language choose page
 const lang_choose_div = document.getElementById("lang-div");
-const title_main = document.getElementById("title");
 let spanId = nav_lang;
 function showlang(){
   title_main.style.display = "none";
@@ -90,3 +90,25 @@ function unicode(){
   }
 }
 //endregion
+//cd
+const cdbg = document.getElementById('cd-page')
+const cd_text_link = document.getElementById('cd_text_link')
+const cdbtn = document.getElementById('openurl')
+const cdcopy = document.getElementById('urlcopy')
+function cd(url){
+  title_main.style.display = 'none';
+  cdbg.style.display = 'block';
+  cd_text_link.textContent = url;
+  cdbtn.setAttribute('onclick', 'window.location.href=\''+url+'\'');
+  cdcopy.onclick = async function(){
+    try {
+      await navigator.clipboard.writeText(url);
+    } catch (err) {
+      console.error('无法复制文本到剪贴板: ', err);
+    }
+  }
+}
+function cdclose(){
+  title_main.style.display = 'flex';
+  cdbg.style.display = 'none';
+}

@@ -5,5 +5,9 @@
   "bg_music_text": "BGM:",
   "lang_title": "Select a language",
   "Use_Unicode_fonts": "Use Unicode fonts: ",
-  "lang_done": "Done"
+  "lang_done": "Done",
+  "cd_text_info": "This leads to a web link, can't be sure how safe it is, is it a redirect?",
+  "openurl": "Open",
+  "urlcopy": "Copied to clipboard",
+  "urlcancel": "Cancel"
 }
