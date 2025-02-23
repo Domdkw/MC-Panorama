@@ -10,15 +10,15 @@
   </head>
   <body>
     <audio id="Playmusic"></audio>
-    <main id="title">
+    <main id="title" class="unselectable">
       <div>
         <img class="logo" src="Global-Header_MCCB-Logo_300x51.svg" alt="logo" />
       </div>
       <div class="btn-area">
         <div class="all">
           <button>~~~</button>
-          <button id="server">服务器</button>
-          <button id="mod">MOD</button>
+          <button id="server" onclick="server(true)">服务器</button>
+          <button id="mod">mod</button>
         </div>
         <div class="half">
           <button id="home_page" onclick="cd('\/\/www.prcooker.asia')">主页</button>
@@ -37,6 +37,7 @@
       <span id="lang_title" class="detailed-title">选择语言</span>
       <hr class="lang-hr">
       <div class="language-list">
+        <span id="lang-unknown">(unknown)</span>
         <span id="zh-CN">简体中文</span>
         <span id="zh-TW">繁體中文（中国台湾）</span>
         <span id="en-US">English</span>
@@ -51,13 +52,54 @@
       <div class="cd-main">
         <div class="cd-title">
           <span id="cd_text_info">这指向一个网页链接，不能确定其安全性，是否进行跳转？</span>
-          <span id="cd_text_link" style="color: #2530ff;">https://www.prcooker.asia</span>
+          <span id="cd_text_link" style="color: #2530ff;"></span>
         </div>
         <div class="cd-buttons">
           <button id="openurl">打开此网站</button>
           <button id="urlcopy">复制到剪贴板</button>
-          <button id="urlcancel" onclick="cdclose()">取消</button>
+          <button id="urlcancel" onclick="cd(false)">取消</button>
         </div>
+      </div>
+    </section>
+    <section id="server-page">
+      <div class="sv_title">服务器列表</div>
+      <div class="sv-div">
+        <div class="sv-list">
+          <div class="sv-item" data-server-ip="play.simpfun.cn:19533">
+            <img class="sv-title-img" src="/panorama/2501_day_1.png" alt="服务器图片">
+            <div class="sv-item-info">
+              <p style="font-size: large;">lyf 2024.43.43</p>
+              <p class="sv-description" style="color: #eee8;"></p>
+            </div>
+            <div class="sv-item-state">
+              <div class="sv-item-online">
+                <span class="player-state">
+                </span>
+                <div class="sv-state-img"></div>
+              </div>
+            </div>
+          </div><!--card-->
+          <div class="sv-item" data-server-ip="mc.catserver.moe">
+            <img class="sv-title-img" src="" alt="服务器图片">
+            <div class="sv-item-info">
+              <p style="font-size: large;">神必猫猫</p>
+              <p class="sv-description" style="color: #eee8;"></p>
+            </div>
+            <div class="sv-item-state">
+              <div class="sv-item-online">
+                <span class="player-state">
+                </span>
+                <div class="sv-state-img"></div>
+              </div>
+            </div>
+          </div><!--card-->
+        </div>
+      </div>
+      <div class="btn-area">
+        <button id="sv_back" onclick="server(false)">返回</button>
+        <button id="sv_refresh" onclick="refreshsv('all')">刷新</button>
+        <button id="copy_svlink">复制链接地址</button>
+        <button id="sv_det">详细信息</button>
       </div>
     </section>
     <script type="module" src="mc-background.js"></script>

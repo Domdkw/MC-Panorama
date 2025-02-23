@@ -4,9 +4,11 @@ const title_main = document.getElementById("title");
 //region language
 
 const nav_lang = navigator.language;
-const lang_support = ["en-US","zh-TW"];
+const lang_support = ["en-US","zh-TW","zh-CN"];
+let uselang = nav_lang;
+
 let jsonObject;
-if(lang_support.includes(nav_lang)){
+if(lang_support.includes(nav_lang) && nav_lang !== 'zh-CN'){
   window.onload = function(){
     fetch('./lang/' + nav_lang + '.json')
     .then(response => response.json())
@@ -38,6 +40,9 @@ function handleLanguageData(obj){
 //language choose page
 const lang_choose_div = document.getElementById("lang-div");
 let spanId = nav_lang;
+if(!lang_support.includes(spanId)){
+  spanId = 'lang-unknown';
+}
 function showlang(){
   title_main.style.display = "none";
   lang_choose_div.style.display = "flex";
@@ -46,7 +51,7 @@ function showlang(){
   const languageList = document.querySelector('.language-list');
 
   languageList.addEventListener('click', function (langspan) {
-    if (langspan.target.tagName === 'SPAN') {
+    if (langspan.target.tagName === 'SPAN' && langspan.target.id !== 'lang-unknown') {
       current_langspan.classList.remove('clicked');
       spanId = langspan.target.id;
       current_langspan = document.getElementById(spanId);
@@ -57,12 +62,13 @@ function showlang(){
 function hiddenlang(){
   title_main.style.display = "flex";
   lang_choose_div.style.display = "none";
-  if(lang_support.includes(spanId)){
+  if(lang_support.includes(spanId) && spanId!== uselang){
     fetch('./lang/' + spanId + '.json')
     .then(response => response.json())
     .then(data => {
       jsonObject = Array.isArray(data)? data : [data];
       handleLanguageData(jsonObject);
+      uselang = spanId;
     })
     .catch(error => console.error('Can not get language profile,Error:', error));
   }
@@ -90,25 +96,140 @@ function unicode(){
   }
 }
 //endregion
-//cd
+
+//region cd
 const cdbg = document.getElementById('cd-page')
 const cd_text_link = document.getElementById('cd_text_link')
 const cdbtn = document.getElementById('openurl')
 const cdcopy = document.getElementById('urlcopy')
 function cd(url){
-  title_main.style.display = 'none';
-  cdbg.style.display = 'block';
-  cd_text_link.textContent = url;
-  cdbtn.setAttribute('onclick', 'window.location.href=\''+url+'\'');
-  cdcopy.onclick = async function(){
-    try {
-      await navigator.clipboard.writeText(url);
-    } catch (err) {
-      console.error('无法复制文本到剪贴板: ', err);
+  if(url){
+    title_main.style.display = 'none';
+    cdbg.style.display = 'block';
+    cd_text_link.textContent = url;
+    cdbtn.setAttribute('onclick', 'window.location.href=\''+url+'\'');
+    cdcopy.onclick = async function(){
+      try {
+        await navigator.clipboard.writeText(url);
+      } catch (err) {
+        console.error('无法复制文本到剪贴板: ', err);
+      }
     }
+  }else{
+    title_main.style.display = 'flex';
+    cdbg.style.display = 'none';
   }
 }
-function cdclose(){
-  title_main.style.display = 'flex';
-  cdbg.style.display = 'none';
+//endregion
+
+//region server
+const serverpage = document.getElementById('server-page');
+const sv_refresh = document.getElementById('sv_refresh');
+const copy_svlink = document.getElementById('copy_svlink');
+const sv_list = document.querySelector('.sv-list');
+const sv_list_item = document.querySelector('.sv-item');
+let get_server_state = false;
+let sv_item = null;
+function server(show){
+  if(show){
+    title_main.style.display = 'none';
+    serverpage.style.display = 'block';
+    if(!get_server_state){
+      refreshsv('all');
+      get_server_state = true;
+    }
+    sv_list.addEventListener('click', function (get_sv_item) {
+      if(sv_item){
+        sv_item.classList.remove('clicked');
+        sv_refresh.setAttribute('onclick', "refreshsv('all')")
+      }
+      sv_item = get_sv_item.target.closest('.sv-item');
+      if(sv_item){
+        sv_item.classList.add('clicked');
+        sv_refresh.setAttribute('onclick', `refreshsv('${sv_item.dataset.serverIp}')`);
+      }
+    })
+  }else{
+    title_main.style.display = 'flex';
+    serverpage.style.display = 'none';
+  }
+}
+const sv_list_url = ['play.simpfun.cn:19533', 'mc.catserver.moe']
+function refreshsv(type){
+  if(type === 'all'){
+    let i = 0;
+    let url = '';
+    while(i < sv_list_url.length){
+      if(i === sv_list_url.length - 1){
+        url += sv_list_url[i]; 
+      }else{
+        url += sv_list_url[i] + ',';
+      }
+      i++;
+    }
+    fetch(`//minecraft-server-api-dm-7fqyy01fd0wk.deno.dev?address=${url}`)//可自建服务器，code在https://github.com/Domdkw/mcserver-api
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(jsonData => {
+      refreshsvfetchserverstate(jsonData);
+    })
+    .catch(error => {
+      console.error('There has been a problem with your fetch operation:', error);
+    });
+  }else{
+    fetch(`//minecraft-server-api-dm-7fqyy01fd0wk.deno.dev?address=${type}`)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+      return response.json();
+    })
+    .then(jsonData => {
+      refreshsvfetchserverstate(jsonData);
+    })
+    .catch(error => {
+      console.error('There has been a problem with your fetch operation:', error);
+    });
+  }
+}
+function refreshsvfetchserverstate(jsonData){
+  console.log(jsonData);
+  sv_list_url.forEach(serverUrl => {
+    const serverElement = document.querySelector(`[data-server-ip="${serverUrl}"]`);
+    if (serverElement) {
+      const player_stateElement = serverElement.querySelector('.player-state');
+      const sv_description = serverElement.querySelector('.sv-description');
+      const sv_item_state = serverElement.querySelector('.sv-item-state');
+      if (player_stateElement) {
+        let online_players = '?';
+        let max_players = '?';
+        if(jsonData[serverUrl].max_players){
+          online_players = jsonData[serverUrl].online_players;
+          max_players = jsonData[serverUrl].max_players;
+          player_stateElement.innerHTML = `${online_players}<span style="color:#eee8">/</span>${max_players}`;
+        }else{
+          player_stateElement.innerHTML = '无法获取数据';
+          player_stateElement.style.fontSize = '12px';
+          player_stateElement.style.color = '#fff9';
+          const img = document.createElement('img');
+          img.src = './sverror.svg';
+          img.classList.add('sv-item-sp');
+        }
+      }
+      if(sv_description){
+        if(jsonData[serverUrl].description){
+          sv_description.textContent = jsonData[serverUrl].description.text;
+        }else if(jsonData[serverUrl].error){
+          sv_description.textContent = jsonData[serverUrl].error;
+          const img = document.createElement('img');
+          img.src = './sverror.svg';
+          img.classList.add('sv-item-sp');
+        }
+      }
+    }
+  });
 }

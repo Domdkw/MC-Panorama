@@ -9,6 +9,9 @@ a, abbr, address, blockquote, body, caption, cite, code, dd, del, dfn, div, dl, 
   font-family: inherit;
   vertical-align: baseline
 }
+body{
+  overflow: hidden;
+}
 button{
   font-family: inherit;
   cursor: pointer;
@@ -25,7 +28,7 @@ button:hover{
 a{
   text-decoration: none;
 }
-.unselectable {
+.unselectable, img{
   -webkit-user-select: none; /* Chrome all / Safari all */  
   -moz-user-select: none;    /* Firefox all */  
   -ms-user-select: none;     /* IE 10+ */  
@@ -42,6 +45,9 @@ main{
   display: flex;
   flex-direction: column;
   align-items: center;
+}
+section{
+ margin: 0; 
 }
 .logo{
   width: 45rem;
@@ -133,7 +139,6 @@ main .half button, .sound_range_div{
   left: 0;
   right: 0;
   z-index: 2;
-  margin: 0;
   width: 100%;
   display: none;
   flex-direction: column;
@@ -171,11 +176,16 @@ main .half button, .sound_range_div{
   padding: 7px 0;
   cursor: pointer;
 }
-.language-list span:hover{
+.language-list span:hover:not(#lang-unknown){
   border-color: #eee9;
 }
 .language-list span.clicked{
-  border-color: #eee;
+  border-color: #eee !important;
+}
+#lang-unknown{
+  font-style: italic;
+  color: #eee6;
+  cursor: default;
 }
 .lang-btn-half{
   margin-top: 1rem;
@@ -227,4 +237,156 @@ main .half button, .sound_range_div{
   width: 30%;
   height: 2.6rem;
   margin-left: 5px;
+}
+#server-page{
+  background-image: url(Dirt_background_JE2.png);
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 3;
+  width: 100%;
+  display: none;
+  height: 100%;
+  --sv-btnarea-height: 7.5rem;
+}
+.sv_title{
+  font-size: 18px;
+  color: #fffffd;
+  text-align: center;
+  padding-top: 3%;
+  margin-bottom: 1%;
+}
+.sv-div{
+  height: calc(100% - 100px - var(--sv-btnarea-height));
+  background-color: #00000078;
+  padding: 10px;
+}
+.sv-list{
+  width: 60%;
+  margin: 0 auto;
+  height: 100%;
+  overflow-y: auto;
+}
+.sv-item{
+  --sv-item-height: 5rem;
+  --sv-state-size: 5rem;
+  height: var(--sv-item-height);
+  display: flex;
+  align-items: center;
+  border: #0000 solid 2px;
+  padding: 5px;
+  margin-bottom: 8px;
+  cursor: pointer;
+}
+.sv-item:hover{
+  border: #eee6 solid 2px; 
+}
+.sv-item.clicked{
+  border: #eee solid 2px;
+  cursor: default; 
+}
+.sv-item span, .sv-item p{
+  color: #eee; 
+}
+.sv-title-img{
+  width: var(--sv-item-height);
+  height: var(--sv-item-height);
+  margin-right: 1rem;
+}
+.sv-item-info{
+  width: calc(100% - var(--sv-state-size) - var(--sv-item-height) - 1rem);
+}
+.sv-item-info p {
+  margin-bottom: 5px;
+}
+.sv-item-state{
+  width: var(--sv-state-size);
+  height: var(--sv-state-size);
+}
+.sv-item-online{
+  display: inline-block;
+  margin-top: 5px;
+  text-align: right;
+}
+.sv-item-sp{
+  width: 3rem;
+  height: 3rem;
+}
+#server-page .btn-area{
+  width: 60%;
+  margin: 1rem auto 0 auto;
+  display: block;
+  height: var(--sv-btnarea-height);
+}
+#server-page .btn-area button, .sv_refresh_div{
+  width: 48%;
+  height: 2.6rem;
+  margin-bottom: 5px;
+}
+
+
+@media (max-width: 768px) {
+  main .btn-area {
+    width: 60%;
+  }
+  .cd-main {
+    width: 80%;
+    margin: 40% auto 0 auto;
+  }
+  .cd-title {
+    margin-bottom: 3rem;
+  }
+  .cd-title span {
+    color: #eee;
+    display: block;
+  }
+  #cd_text_info {
+    font-size: 20px;
+    margin-bottom: .5rem;
+  }
+  .cd-buttons {
+    width: 100%;
+  }
+  .cd-buttons button {
+    display: inline-block;
+    width: 100%;
+    height: 3rem;
+    margin-left: 0;
+    margin-bottom: 1rem;
+  }
+}
+@media (min-width: 769px) and (max-width: 1024px) {
+  .logo {
+    width: 25rem;
+    margin-top: 4rem;
+    margin-bottom: 3rem;
+  }
+  main .btn-area {
+    width: 90%;
+  }
+  .cd-main {
+    width: 70%;
+    margin: 30% auto 0 auto;
+  }
+  .cd-title {
+    margin-bottom: 2rem;
+  }
+  .cd-title span {
+    color: #eee;
+    display: block;
+  }
+  #cd_text_info {
+    font-size: 18px;
+    margin-bottom: .5rem;
+  }
+  .cd-buttons {
+    width: 100%;
+  }
+  .cd-buttons button {
+    display: inline-block;
+    width: 48%;
+    height: 2.6rem;
+    margin-left: 1%;
+    margin-bottom: 1rem;
+  }
 }

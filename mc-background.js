@@ -3,6 +3,7 @@ import * as THREE from '//unpkg.com/three/build/three.module.js';
 //img-choose
 const img_key = [
   "2412",
+  "2501",
 ];
 
 const currentDate = new Date();
@@ -28,9 +29,9 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // 渲染器
   const renderer = new THREE.WebGLRenderer();
-  THREE.ColorManagement.legacyMode = false
-  renderer.outputEncoding = THREE.sRGBEncoding
-  renderer.toneMapping = THREE.ACESFilmicToneMapping
+  THREE.ColorManagement.legacyMode = false;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.LinearToneMapping;
