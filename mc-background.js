@@ -5,7 +5,6 @@ const loading = document.querySelector('.loading');
 const loadinfo = document.querySelector('.loadinfo');
 const rangeblock = document.querySelector('.rangeblock');
 
-// 删除导致无限循环的 while 代码块
 //img-choose
 const img_key = [
   "2412",
