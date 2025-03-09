@@ -100,13 +100,15 @@ function unicode(){
 //region cd
 const cdbg = document.getElementById('cd-page')
 const cd_text_link = document.getElementById('cd_text_link')
+const cd_text = document.getElementById('cd_text_info')
 const cdbtn = document.getElementById('openurl')
 const cdcopy = document.getElementById('urlcopy')
-function cd(url){
+function cd(url, text){
   if(url){
     title_main.style.display = 'none';
     cdbg.style.display = 'block';
     cd_text_link.textContent = url;
+    cd_text_link.setAttribute('href', url);
     cdbtn.setAttribute('onclick', 'window.location.href=\''+url+'\'');
     cdcopy.onclick = async function(){
       try {
@@ -114,6 +116,9 @@ function cd(url){
       } catch (err) {
         console.error('无法复制文本到剪贴板: ', err);
       }
+    }
+    if(text){
+      cd_text.textContent = text; 
     }
   }else{
     title_main.style.display = 'flex';
