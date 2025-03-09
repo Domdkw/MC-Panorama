@@ -1,5 +1,11 @@
 import * as THREE from '//unpkg.com/three/build/three.module.js';
 
+let textureLoaded = 0;
+const loading = document.querySelector('.loading');
+const loadinfo = document.querySelector('.loadinfo');
+const rangeblock = document.querySelector('.rangeblock');
+
+// 删除导致无限循环的 while 代码块
 //img-choose
 const img_key = [
   "2412",
@@ -30,7 +36,6 @@ window.addEventListener('DOMContentLoaded', () => {
   // 渲染器
   const renderer = new THREE.WebGLRenderer();
   THREE.ColorManagement.legacyMode = false;
-  renderer.outputEncoding = THREE.sRGBEncoding;
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.setSize(window.innerWidth, window.innerHeight);
   renderer.outputEncoding = THREE.sRGBEncoding;
@@ -49,14 +54,25 @@ window.addEventListener('DOMContentLoaded', () => {
   // 创建绘图
   const geometry = new THREE.PlaneGeometry(3, 3); // 平面的宽度和高度
   const textureLoader = new THREE.TextureLoader();
-
   function loadMaterial(n) {
     return new THREE.MeshBasicMaterial({
-      map: textureLoader.load(`./panorama/${img_date}_${theme}_${n}.png`),
+      map: textureLoader.load(`./panorama/${img_date}_${theme}_${n}.png`, () => {
+        textureLoaded++;
+        // 每次加载完成更新进度
+        loadinfo.innerHTML = `loading texture... ${textureLoaded}/6`;
+        rangeblock.style.width = `${(textureLoaded / 6) * 100}%`;
+        if(textureLoaded === 6) {
+          setTimeout(() => {
+            loading.style.opacity = '0';
+            setTimeout(() => {
+              loading.style.display = 'none';
+            }, 1000); // 等待渐隐动画完成
+          }, 1000); // 加载完成后等待1秒
+        }
+      }),      
       color: new THREE.Color(0xffffff).multiplyScalar(0.5),
     });
   }
-
   const materialFront = loadMaterial(0);
   const front = new THREE.Mesh(geometry, materialFront);
   scene.add(front);
