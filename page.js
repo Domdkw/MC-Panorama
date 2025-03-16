@@ -135,6 +135,7 @@ const sv_list = document.querySelector('.sv-list');
 const sv_list_item = document.querySelector('.sv-item');
 let get_server_state = false;
 let sv_item = null;
+let refreshType = 'all';
 function server(show){
   if(show){
     title_main.style.display = 'none';
@@ -146,12 +147,12 @@ function server(show){
     sv_list.addEventListener('click', function (get_sv_item) {
       if(sv_item){
         sv_item.classList.remove('clicked');
-        sv_refresh.setAttribute('onclick', "refreshsv('all')")
+        refreshType = 'all';
       }
       sv_item = get_sv_item.target.closest('.sv-item');
       if(sv_item){
         sv_item.classList.add('clicked');
-        sv_refresh.setAttribute('onclick', `refreshsv('${sv_item.dataset.serverIp}')`);
+        refreshType = sv_item.dataset.serverIp;
       }
     })
   }else{
@@ -160,8 +161,8 @@ function server(show){
   }
 }
 const sv_list_url = ['play.simpfun.cn:19533', 'mc.catserver.moe']
-function refreshsv(type){
-  if(type === 'all'){
+function refreshsv(){
+  if(refreshType === 'all'){
     let i = 0;
     let url = '';
     while(i < sv_list_url.length){
@@ -186,7 +187,7 @@ function refreshsv(type){
       console.error('There has been a problem with your fetch operation:', error);
     });
   }else{
-    fetch(`//minecraft-server-api-dm-7fqyy01fd0wk.deno.dev?address=${type}`)
+    fetch(`//minecraft-server-api-dm-7fqyy01fd0wk.deno.dev?address=${refreshType}`)
     .then(response => {
       if (!response.ok) {
         throw new Error('Network response was not ok');

@@ -1,9 +1,14 @@
 {
+  "create": "机械动力：思索",
   "server": "服务器",
-  "mod": "mod",
+  "options": "选项",
   "home_page": "主页",
   "bg_music_text": "音乐:",
   "lang_title": "选择语言",
   "Use_Unicode_fonts": "使用Unicode字体：",
-  "lang_done": "完成"
+  "lang_done": "完成",
+  "cd_text_info": "这指向一个网页链接，不能确定其安全性，是否进行跳转？",
+  "openurl": "打开此网站",
+  "urlcopy": "复制到剪贴板",
+  "urlcancel": "取消"
 }

@@ -1,8 +1,9 @@
 {
-  "server": "server",
-  "mod": "mod",
+  "create": "Create-Ponder",
+  "server": "Server",
+  "options": "Options",
   "home_page": "Home page",
-  "bg_music_text": "BGM:",
+  "bg_music_text": "BGM: ",
   "lang_title": "Select a language",
   "Use_Unicode_fonts": "Use Unicode fonts: ",
   "lang_done": "Done",

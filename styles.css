@@ -27,6 +27,9 @@ button:hover{
 }
 a{
   text-decoration: none;
+  color: inherit;
+  font-size: inherit;
+  font-family: inherit;
 }
 a:hover{
   text-decoration: underline;
@@ -56,9 +59,26 @@ section{
   width: 45rem;
   margin-bottom: 1rem;
 }
+.ooops {
+  position: absolute;
+  right: -6rem;
+  bottom: 20px;
+  color: #ff0;
+  font-size: 18px;
+  text-shadow: 2px 2px 4px #0008;
+  will-change: transform;
+  animation: pulse 0.5s ease-in-out infinite;
+  transform: rotate(-15deg);
+}
+@keyframes pulse {
+  50% {
+    transform: scale(1.1) rotate(-15deg);
+  }
+}
+
 main .btn-area{
   width: 50%;
-  margin-top: 5%;
+  margin-top: 7%;
 }
 main .all{
   height: 100%;

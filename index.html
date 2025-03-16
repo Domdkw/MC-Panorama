@@ -9,14 +9,6 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <section class="loading">
-      <div class="loadstate">
-        <h2 class="loadinfo">loading texture ...</h2>
-        <div class="rangebox">
-          <div class="rangeblock"></div>
-        </div>
-      </div>
-    </section>
     <style>
       .loading {
         position: fixed;
@@ -26,14 +18,15 @@
         background-color: #d10000;
         opacity: 1;
         transition: opacity 1s ease-in-out;
+        display: flex;
+        justify-content: center;
+        align-items: center;
       }
       .loadstate {
-        margin: 30% auto 0 auto;
         width: 65%;
       }
      .loadinfo {
         color: white;
-        font-size: 16px;
       }
       .loadstate .rangebox  {
         width: 100%;
@@ -49,17 +42,24 @@
         background-color: white;
       }
     </style>
+    <section class="loading">
+      <div class="loadstate">
+        <h2 class="loadinfo">loading texture ...</h2>
+        <div class="rangebox"><div class="rangeblock"></div></div>
+      </div>
+    </section>
     <audio id="Playmusic"></audio>
-    <section id="screen">
+    <section>
       <main id="title" class="unselectable">
-        <div>
-          <img class="logo" src="Global-Header_MCCB-Logo_300x51.svg" alt="logo" />
+        <div style="position: relative;">
+          <img class="logo" src="Global-Header_MCCB-Logo_300x51.svg" alt="logo"/>
+          <span class="ooops"><a href="https://github.com/Domdkw/MC-Panorama">https://github.com/Domdkw/MC-Panorama</a></span>
         </div>
         <div class="btn-area">
           <div class="all">
-            <button>~~~</button>
+            <button id="create"><span class="goggles"></span>机械动力：思索</button>
             <button id="server" onclick="server(true)">服务器</button>
-            <button id="mod">mod</button>
+            <button id="options">选项</button>
           </div>
           <div class="half">
             <button id="home_page" onclick="cd('\/\/www.prcooker.asia', null)">主页</button>
@@ -107,7 +107,7 @@
         <div class="sv-div">
           <div class="sv-list">
             <div class="sv-item" data-server-ip="play.simpfun.cn:19533">
-              <img class="sv-title-img" src="/panorama/2501_day_1.png?param=90y90" alt="服务器图片">
+              <img class="sv-title-img" src="/panorama/2501_day_1.png" alt="服务器图片">
               <div class="sv-item-info">
                 <p style="font-size: large;">lyf 2024.43.43</p>
                 <p class="sv-description" style="color: #eee8;"></p>
@@ -138,12 +138,19 @@
         </div>
         <div class="btn-area">
           <button id="sv_back" onclick="server(false)">返回</button>
-          <button id="sv_refresh" onclick="refreshsv('all')">刷新</button>
+          <button id="sv_refresh" onclick="refreshsv()">刷新</button>
           <button id="copy_svlink">复制链接地址</button>
           <button id="sv_det">详细信息</button>
         </div>
       </section>
+      <section id="options-page" class="dirt unselectable" style="display: none;"></section>
     </section>
+    <script type="text/javascript">
+      let fileLoaded = 0;
+      const loading = document.querySelector('.loading');
+      const loadinfo = document.querySelector('.loadinfo');
+      const rangeblock = document.querySelector('.rangeblock');
+    </script>
     <script type="module" src="mc-background.js"></script>
     <script type="text/javascript" src="playsound.js"></script>
     <script src="page.js"></script>
