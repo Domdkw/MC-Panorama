@@ -97,6 +97,12 @@ function unicode(){
 }
 //endregion
 
+//region ooops
+const ooops = document.querySelector('.ooops');
+ooops.style.right = `-${ooops.offsetWidth/3}px`;
+ooops.style.fontSize = `${-0.7*ooops.textContent.length +46.9}px`;
+//endregion
+
 //region cd
 const cdbg = document.getElementById('cd-page')
 const cd_text_link = document.getElementById('cd_text_link')
@@ -238,4 +244,36 @@ function refreshsvfetchserverstate(jsonData){
       }
     }
   });
+}
+//endregion
+//region options
+const optionspage = document.getElementById('options-page');
+function options(show){
+  if(show){
+    title_main.style.display = 'none';
+    optionspage.style.display = 'block';
+  }else{
+    title_main.style.display = 'flex';
+    optionspage.style.display = 'none';
+  }
+}
+//endregion
+//region Create
+function create(){
+  title_main.style.display = 'none';
+  loadingDiv.style.display = 'flex';
+  setTimeout(() => {
+    loadingDiv.style.opacity = '1';
+  },100)
+  while (loadingDiv.childNodes.length > 1) {
+    loadingDiv.removeChild(loadingDiv.lastChild);
+  }
+  loadFile('ponder.js', 'js', true);
+  setTimeout(() => {
+    loadingDiv.style.opacity = '0';
+    setTimeout(() => {
+      loadingDiv.style.display = 'none';
+    }, 1000); // 等待渐隐动画完成
+  }, 1000); // 加载完成后等待1秒
+
 }

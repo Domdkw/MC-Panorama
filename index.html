@@ -7,10 +7,8 @@
     <title></title>
     <style>body{margin: 0;} canvas{position: absolute;display: block;filter: contrast(1.6);z-index: -1;}</style>
     <link rel="stylesheet" href="styles.css" />
-  </head>
-  <body>
     <style>
-      .loading {
+      .load {
         position: fixed;
         z-index: 100;
         width: 100%;
@@ -21,18 +19,21 @@
         display: flex;
         justify-content: center;
         align-items: center;
+        flex-direction: column;
       }
       .loadstate {
         width: 65%;
+        margin-top: 1rem;
+        font-weight: bolder;
       }
      .loadinfo {
         color: white;
+        font-size: 18px;
       }
       .loadstate .rangebox  {
-        width: 100%;
         height: 16px;
         border: 3px solid white;
-        margin-top: 2px;
+        margin-top: 5px;
         padding: 3px;
       }
      .loadstate .rangeblock {
@@ -41,13 +42,90 @@
         height: 100%;
         background-color: white;
       }
+      .bugjump {
+        width: 70%;
+        margin-bottom: 1rem;
+      }
     </style>
-    <section class="loading">
-      <div class="loadstate">
-        <h2 class="loadinfo">loading texture ...</h2>
-        <div class="rangebox"><div class="rangeblock"></div></div>
-      </div>
-    </section>
+  </head>
+  <body>
+    <section class="load"><img class="bugjump" src="bugjump.png"></img></section>
+    <script>
+      let fileLoaded = 0;
+      const loadingDiv = document.querySelector('.load');
+      function SNLB(i, range){//setNewLoadBlock
+        const loadstate = document.createElement('div');
+        loadstate.classList.add('loadstate');
+        if (range){
+          loadstate.innerHTML = '<h class="loadinfo"></h><div class="rangebox"><div class="rangeblock"></div></div>';
+        }else{
+          loadstate.innerHTML = '<h class="loadinfo"></h>';
+        }
+        loadstate.id = i;
+        loadingDiv.appendChild(loadstate);
+        const loadinfo = loadstate.querySelector('.loadinfo');
+        const rangeblock = loadstate.querySelector('.rangeblock');
+        return {loadstate, loadinfo, rangeblock}
+      }
+      function loadFile(url, type, range){
+        const {loadstate, loadinfo, rangeblock} = SNLB(url, range);
+        loadinfo.textContent = `Loading ${url}...`;
+        const xhr = new XMLHttpRequest();
+        xhr.open('GET', url, true);
+        xhr.responseType = 'text';
+        xhr.onprogress = (e) => {
+          if (e.lengthComputable) {
+            const percentComplete = (e.loaded / e.total) * 100;
+            rangeblock.style.width = `${percentComplete}%`;
+          }
+        }
+        xhr.onload = () => {
+          if (xhr.status === 200) {
+            loadinfo.textContent = `${url} loaded successfully!`;
+            switch (type) {
+              case 'js':
+                const script = document.createElement('script');  
+                script.textContent = xhr.responseText;
+                document.body.appendChild(script);
+                break;
+              case 'css':
+                const style = document.createElement('link');
+                style.textContent = xhr.responseText;
+                style.rel = 'stylesheet';
+                style.href = url;
+                document.head.appendChild(style);            
+            }
+          }else{
+            loadinfo.textContent = `Failed to load ${url}!`;
+            rangeblock.style.width = '0%';
+          }
+        }
+        xhr.onerror = () => {
+          loadinfo.textContent = `Failed to load ${url}!`;
+          rangeblock.style.width = '0%';
+        }
+        xhr.send();
+      }
+    </script>
+    <script type="module">
+      async function loadTHREE() {
+        const {loadinfo, rangeblock} = SNLB('three', true);
+        loadinfo.textContent = 'Loading the three@0.174.0.js module...';
+        const module = await import('//unpkg.com/three@0.174.0/build/three.module.min.js');
+        try {
+          window.THREE = module;
+          loadinfo.textContent = 'The three@0.174.0.js module is loaded successfully!';
+          rangeblock.style.width = '100%';
+          setTimeout(() => {
+            loadMcPanorama();
+          }, 500)
+        }catch (e) {
+          loadinfo.textContent = 'Failed to load the three.js module!';
+          rangeblock.style.width = '0%';
+        }
+      }
+      loadTHREE();
+    </script>
     <audio id="Playmusic"></audio>
     <section>
       <main id="title" class="unselectable">
@@ -57,9 +135,9 @@
         </div>
         <div class="btn-area">
           <div class="all">
-            <button id="create"><span class="goggles"></span>机械动力：思索</button>
+            <button id="create" onclick="create()"><span class="goggles"></span>机械动力：思索</button>
             <button id="server" onclick="server(true)">服务器</button>
-            <button id="options">选项</button>
+            <button id="options" onclick="options(true)">选项</button>
           </div>
           <div class="half">
             <button id="home_page" onclick="cd('\/\/www.prcooker.asia', null)">主页</button>
@@ -107,7 +185,7 @@
         <div class="sv-div">
           <div class="sv-list">
             <div class="sv-item" data-server-ip="play.simpfun.cn:19533">
-              <img class="sv-title-img" src="/panorama/2501_day_1.png" alt="服务器图片">
+              <img class="sv-title-img" src="/server/lyf 2024.43.43.png" alt="服务器图片">
               <div class="sv-item-info">
                 <p style="font-size: large;">lyf 2024.43.43</p>
                 <p class="sv-description" style="color: #eee8;"></p>
@@ -143,15 +221,16 @@
           <button id="sv_det">详细信息</button>
         </div>
       </section>
-      <section id="options-page" class="dirt unselectable" style="display: none;"></section>
+      <section id="options-page" class="dirt unselectable" style="display: none;">
+        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px;">
+          <button>按钮1</button>
+          <button>按钮2</button>
+          <button>按钮3</button>
+          <button>按钮4</button>
+        </div>
+      </section>
     </section>
-    <script type="text/javascript">
-      let fileLoaded = 0;
-      const loading = document.querySelector('.loading');
-      const loadinfo = document.querySelector('.loadinfo');
-      const rangeblock = document.querySelector('.rangeblock');
-    </script>
-    <script type="module" src="mc-background.js"></script>
+    <script type="text/javascript" src="mc-background.js"></script>
     <script type="text/javascript" src="playsound.js"></script>
     <script src="page.js"></script>
   </body>

@@ -1,25 +1,60 @@
-import * as THREE from '//unpkg.com/three/build/three.module.js';
-
-//img-choose
-const imgBatch = [
-  "2412",
-  "2501",
-];
-const imgLink = [
-  {"url":'https://i.postimg.cc'},{'2412-day-0.png':'wB0z0pYJ'},{'2412-day-1.png':'sfBBQn5K'},{'2412-day-2.png':'L4rJzzTS'},{'2412-day-3.png':'QCWr8K9k'},{'2412-day-4.png':'Tw16s4Ts'},{'2412-day-5.png':'wvrpYQvj'},{'2412-night-0.png':'hhWRf4VF'},{'2412-night-1.png':'NjtLnBSP'},{'2412-night-2.png':'8zbsQxVk'},{'2412-night-3.png':'nLcrHTH4'},{'2412-night-4.png':'xTMcgcxz'},{'2412-night-5.png':'QM4tV5tR'},{'2501-day-0.png':'hjXGmjQh'},{'2501-day-1.png':'x8HTs4R2'},{'2501-day-2.png':'Px05Qj1y'},{'2501-day-3.png':'9F5f4cmF'},{'2501-day-4.png':'DfbZySKM'},{'2501-day-5.png':'QdSNn5pH'},{'2501-night-0.png':'QxQd1vCg'},{'2501-night-1.png':'htKPrMQk'},{'2501-night-2.png':'rpmy6mJg'},{'2501-night-3.png':'bJSzJB4t'},{'2501-night-4.png':'N0zsQcCt'},{'2501-night-5.png':'5ycfFmMk'},
-];
-const hours = new Date().getHours();
-var theme = "day";
-if (hours <= 7 || hours > 18) {
-  theme = "night";
+//RTT
+function RTT(url, timeout = 5000) {
+  return new Promise((resolve) => {
+    let img = new Image();
+    const st = performance.now();
+    let isTimeout = false;
+    const cleanup = () => {
+      clearTimeout(timer);
+      img.onload = null;
+      img.onerror = null;
+      img = null;
+    };
+    img.onload = () => {
+      if (isTimeout) return;
+      const et = performance.now();
+      const rtt = et - st;
+      resolve(rtt);
+      cleanup();
+    };
+    img.onerror = () => {
+      if (isTimeout) return;
+      resolve(-1);
+      cleanup();
+    };
+    const timer = setTimeout(() => {
+      isTimeout = true;
+      resolve(-1);
+      cleanup();
+    }, timeout);
+    img.src = '//'+url+'/favicon.ico';
+  })
 }
-const imgDate = imgBatch[Math.floor(Math.random() * imgBatch.length)];
-const imgDomain = 1;
+//img-choose
+//mirror
+const imgMirror = ['i.postimg.cc'];
+let imgDomain = 0, minImgRTT = -1;
 
-const velocity = 0.0004;
+// 修改后的镜像检测逻辑
+const promises = imgMirror.map((url, index) => 
+  RTT(url).then(rtt => {
+    // 原子化更新最小值
+    if (rtt > 0) {
+      performance.mark(`mirror-test-${index}`);
+      const currentMin = minImgRTT;
+      if (currentMin === -1 || rtt < currentMin) {
+        minImgRTT = rtt;
+        imgDomain = index + 1; // 索引从1开始
+      }
+      performance.measure(`mirror-${index}`, `mirror-test-${index}`);
+    }
+    return { index, rtt };
+  })
+);
 
-// 加载纹理
-window.addEventListener('DOMContentLoaded', () => {
+// 将函数定义提升到文件顶部
+function loadMcPanorama() {
+  const {loadinfo, rangeblock} = SNLB('texture', true);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(
     100,
@@ -46,6 +81,9 @@ window.addEventListener('DOMContentLoaded', () => {
   }
   document.body.appendChild(renderer.domElement);
 
+  loadinfo.innerHTML = 'loading texture... ';
+  rangeblock.style.width = '0%';
+
   // 创建绘图
   const geometry = new THREE.PlaneGeometry(3, 3); // 平面的宽度和高度
   const textureLoader = new THREE.TextureLoader();
@@ -54,16 +92,15 @@ window.addEventListener('DOMContentLoaded', () => {
     if (imgDomain === 0) {
       imgUrl = `./panorama/${imgDate}_${theme}_${n}.png`;
     } else {
-      const baseUrl = imgLink[0].url; 
-      const fileName = `${imgDate}-${theme}-${n}.png`;
-      let hash = '';
-      for (let i = 1; i < imgLink.length; i++) {
-        if (imgLink[i][fileName]) {
-          hash = imgLink[i][fileName];
-          break;
-        }
+      const imgBatchToNum = {"2412": 0, "2501": 1, "2502":2, "create":3,};
+      const themeToNum = {"day": 0, "night": 1};
+      let imgOutlinkKey = null;
+      if(imgDate === "2501" || imgDate === "2412") {
+        imgOutlinkKey = imgLink[imgDomain-1][ imgBatchToNum[imgDate] * 12 + themeToNum[theme]*6 + n+1 ];
+      } else {
+        imgOutlinkKey = imgLink[imgDomain-1][ imgBatchToNum[imgDate] * 6 + 12 + n+1 ];
       }
-      imgUrl = `${baseUrl}/${hash}/${fileName}`;
+      imgUrl = `${imgLink[imgDomain-1][0]}/${imgOutlinkKey}/${imgDate}-${theme}-${n}.png`;
     }
     return new THREE.MeshBasicMaterial({
       map: textureLoader.load(imgUrl, () => {
@@ -72,9 +109,9 @@ window.addEventListener('DOMContentLoaded', () => {
         rangeblock.style.width = `${(fileLoaded / 6) * 100}%`;
         if(fileLoaded === 6) {
           setTimeout(() => {
-            loading.style.opacity = '0';
+            loadingDiv.style.opacity = '0';
             setTimeout(() => {
-              loading.style.display = 'none';
+              loadingDiv.style.display = 'none';
             }, 1000); // 等待渐隐动画完成
           }, 1000); // 加载完成后等待1秒
         }
@@ -132,4 +169,51 @@ window.addEventListener('DOMContentLoaded', () => {
   };
 
   animate();
+};
+
+// 修改 Promise.allSettled 的回调部分
+// 增强兜底逻辑
+Promise.allSettled(promises).then(results => {
+  const validResults = results
+    .filter(r => r.status === 'fulfilled' && r.value.rtt > 0)
+    .map(r => r.value);
+
+  if (validResults.length === 0) {
+    console.warn('All mirrors failed, using local resources');
+    imgDomain = 0;
+    minImgRTT = -1;
+  } else {
+    // 找到响应最快的镜像
+    const fastest = validResults.reduce((prev, current) => 
+      current.rtt < prev.rtt ? current : prev
+    );
+    imgDomain = fastest.index + 1;
+    minImgRTT = fastest.rtt;
+  }
+  const {loadinfo}= SNLB('img', false);
+  loadinfo.innerHTML = `imgMirror: ${imgDomain}, imgDate: ${imgDate}, theme: ${theme}`;
 });
+
+const imgBatch = [
+  "2412",
+  "2501",
+  "2502",
+  "create",
+];
+const imgLink = [
+  ["https://i.postimg.cc",'wB0z0pYJ','sfBBQn5K','L4rJzzTS','QCWr8K9k','Tw16s4Ts','wvrpYQvj','hhWRf4VF','NjtLnBSP','8zbsQxVk','nLcrHTH4','xTMcgcxz','QM4tV5tR','hjXGmjQh','x8HTs4R2','Px05Qj1y','9F5f4cmF','DfbZySKM','QdSNn5pH','QxQd1vCg','htKPrMQk','rpmy6mJg','bJSzJB4t','N0zsQcCt','5ycfFmMk',
+    'MHk38znj','SxZZx6X4','WbvYWbRB','2y4ckgW9','05mH0K4G','ZKx71t4C','sgf6z6gK','ydRnj2L6','KjyfHQWP','66dYvJ7Y','0NbVMzmw','GtJKwG0Z',
+]
+];
+const imgDate = imgBatch[Math.floor(Math.random() * imgBatch.length)];// 0: 2412 1: 2501 2: 2502 3: create
+const hours = new Date().getHours();
+var theme = "null";
+if (imgDate === "2412" || imgDate === "2501") {
+  if (hours <= 7 || hours > 18) {
+    theme = "night";
+  }else{
+    theme = "day"; 
+  }
+}
+//imgDomain = 0; // 0: 本地 1: 远程;
+const velocity = 0.0004;
