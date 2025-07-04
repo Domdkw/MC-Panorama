@@ -86,7 +86,7 @@ function unicode(){
     firstfontload = true;
     const styleSheet = document.createElement('style');
     document.head.appendChild(styleSheet);
-    styleSheet.sheet.insertRule('@font-face {font-family: "Minecraft-Regular";src: url("./Minecraft-Regular.otf") format("opentype");}');
+    styleSheet.sheet.insertRule('@font-face {font-family: "Minecraft-Regular";src: url("./assets/Minecraft-Regular.otf") format("opentype");}');
   }
   ttf_usestate_text = !ttf_usestate_text;
   if(ttf_usestate_text){
@@ -187,7 +187,7 @@ function refreshsv(){
       return response.json();
     })
     .then(jsonData => {
-      refreshsvfetchserverstate(jsonData);
+      FSS(jsonData);
     })
     .catch(error => {
       console.error('There has been a problem with your fetch operation:', error);
@@ -201,21 +201,21 @@ function refreshsv(){
       return response.json();
     })
     .then(jsonData => {
-      refreshsvfetchserverstate(jsonData);
+      FSS(jsonData);
     })
     .catch(error => {
       console.error('There has been a problem with your fetch operation:', error);
     });
   }
 }
-function refreshsvfetchserverstate(jsonData){
+function FSS(jsonData){//refreshServer.fetchServerState刷新服务器状态
   console.log(jsonData);
   sv_list_url.forEach(serverUrl => {
     const serverElement = document.querySelector(`[data-server-ip="${serverUrl}"]`);
     if (serverElement) {
       const player_stateElement = serverElement.querySelector('.player-state');
       const sv_description = serverElement.querySelector('.sv-description');
-      const sv_item_state = serverElement.querySelector('.sv-item-state');
+      //const sv_item_state = serverElement.querySelector('.sv-item-state');
       if (player_stateElement) {
         let online_players = '?';
         let max_players = '?';
@@ -228,7 +228,7 @@ function refreshsvfetchserverstate(jsonData){
           player_stateElement.style.fontSize = '12px';
           player_stateElement.style.color = '#fff9';
           const img = document.createElement('img');
-          img.src = './sverror.svg';
+          img.src = './assets/page/sverror.svg';
           img.classList.add('sv-item-sp');
         }
       }
@@ -238,7 +238,7 @@ function refreshsvfetchserverstate(jsonData){
         }else if(jsonData[serverUrl].error){
           sv_description.textContent = jsonData[serverUrl].error;
           const img = document.createElement('img');
-          img.src = './sverror.svg';
+          img.src = './assets/page/sverror.svg';
           img.classList.add('sv-item-sp');
         }
       }
@@ -268,12 +268,17 @@ function create(){
   while (loadingDiv.childNodes.length > 1) {
     loadingDiv.removeChild(loadingDiv.lastChild);
   }
-  loadFile('ponder.js', 'js', true);
+  loadFile('./ponder/ponder.js', 'js', true);
+  //loadFile('./ponder/item.css', 'css', true);
+  const itemDiv = document.createElement('div');
+  itemDiv.id = 'item-list';
+  itemDiv.classList.add('dirt','abso');
+  document.body.appendChild(itemDiv);
   setTimeout(() => {
     loadingDiv.style.opacity = '0';
+    itemDiv.classList.add('ponderDiv');
     setTimeout(() => {
       loadingDiv.style.display = 'none';
     }, 1000); // 等待渐隐动画完成
   }, 1000); // 加载完成后等待1秒
-
 }

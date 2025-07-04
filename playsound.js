@@ -9,12 +9,17 @@ const audioFiles = [
 
 const randomIndex = Math.floor(Math.random() * audioFiles.length);
 const selectedAudioFile = audioFiles[randomIndex];
-audio.src = selectedAudioFile;
 
 let currentVolume = parseFloat(volumeSlider.value);
 
 // 定义一个变量来保存点击音效的 Audio 对象
 let clickAudio = null;
+let firstplay = true;
+volumeSlider.addEventListener('click', ()=>{if(firstplay){
+  firstplay = false;
+  audio.src = './assets/sound/'+selectedAudioFile;
+}
+})
 
 volumeSlider.addEventListener('input', function () {
   currentVolume = parseFloat(volumeSlider.value); // 更新当前音量值
@@ -35,7 +40,8 @@ document.body.addEventListener('click', function (Click_ogg) {
     if (currentVolume > 0) {
       if (!clickAudio) {
         // 如果 clickAudio 还没有创建，则创建一个新的 Audio 对象
-        clickAudio = new Audio('Click.ogg.mp3');
+        clickAudio = new Audio('./assets/sound/Click.ogg.mp3');
+
       }
       clickAudio.volume = currentVolume;
       if (clickAudio.paused) {
