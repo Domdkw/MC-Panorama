@@ -115,7 +115,6 @@ let DlOoops = [{'zh':false},{'en':false}];
 if(DlOoopsStr){
   DlOoops = JSON.parse(DlOoopsStr);
 }
-console.log(localStorage);
 if(sti_moreOoops){//不仅检查moreooops是否启用，并且检查用户是否同意使用LS
   (async ()=>{//下载对应语言的文本
     if(navLang === 'zh' || navLang === 'zh-CN'){
@@ -290,26 +289,11 @@ function FSS(jsonData){//refreshServer.fetchServerState刷新服务器状态
 //region Create
 function create(){
   title_main.style.display = 'none';
-  loadingDiv.style.display = 'flex';
-  setTimeout(() => {
-    loadingDiv.style.opacity = '1';
-  },100)
-  while (loadingDiv.childNodes.length > 1) {
-    loadingDiv.removeChild(loadingDiv.lastChild);
-  }
-  loadFile('./ponder/ponder.js', 'js', true);
-  //loadFile('./ponder/item.css', 'css', true);
-  const itemDiv = document.createElement('div');
-  itemDiv.id = 'item-list';
-  itemDiv.classList.add('dirt','abso');
-  document.body.appendChild(itemDiv);
-  setTimeout(() => {
-    loadingDiv.style.opacity = '0';
-    itemDiv.classList.add('ponderDiv');
-    setTimeout(() => {
-      loadingDiv.style.display = 'none';
-    }, 1000); // 等待渐隐动画完成
-  }, 1000); // 加载完成后等待1秒
+  //追加脚本（无加载屏幕）
+  terminal.innerHTML = '加载ponder界面渲染脚本(/ponder/index.js) =>插入body';
+  const script = document.createElement('script');
+  script.src = './ponder/index.js';
+  body.appendChild(script);
 }
 //endregion
 
@@ -319,31 +303,28 @@ const optionsPage = document.getElementById('options-page');
 const optionAddListenerIds = ['sti-moreooops'];
 const options = {
   show: async function(){
-  this.handleChange = function (e) {
-    if (e.target.classList.contains('canClick')) {
-      const sti = e.target.closest('.setting-item');
-      if (sti) {
-        const sIType = sti.dataset.type;
-        switch(sIType){
-          case 'range':
-              options.render.range(sti);
-            break;
-          case 'checkbox':
-              // 当复选框类型改变时，调用select方法
-              if(optionAddListenerIds.includes(sti.id)){
-                options.render.select(sti.id);
-              }
-            break;
-        }
-      }
+  this.handleChange = function (e) { //重写逻辑（优化）
+    if (!e.target.classList.contains('canClick')) return;//如果不是可点击元素-class=canClick（处理非btn元素）,直接返回
+    const sti = e.target.closest('.setting-item');
+    if (!sti) return; //如果不是setting-item元素,直接返回
+    const sIType = sti.dataset.type;
+    switch(sIType){
+      case 'range':
+          options.render.range(sti);
+        break;
+      case 'checkbox':
+          // 当复选框类型改变时，调用select方法
+          if(optionAddListenerIds.includes(sti.id)){
+            options.render.select(sti.id);
+          }
+        break;
     }
   }
   if (!LS_accept) {
     const accept = await askLocalStorage('本界面使用LocalStorage储存桶来存储设置配置。是否启用LocalStorage?');
-    if (!accept) {
-      options.hide();
-      return;
-    }
+    if (accept) return;
+    options.hide();
+    return;
   }else{
     options.load();
   }
@@ -357,32 +338,31 @@ const options = {
   optionsPage.style.display = 'none';
   },
   load: function(){
-  if(LS_accept){
-    const stiObj = JSON.parse( localStorage.getItem('sti') );
-    if (stiObj) {
-    stiObj.forEach(function(i){//单个键值
-      const sti = optionsPage.querySelector(`#${i.id}`);//sti=setting-item元素
-      const sIType = sti.dataset.type;
-      switch(sIType){
-        case 'range':
-          const sIInput = sti.querySelector('input');
-          sIInput.value = i.value;
-          options.render.range(sti);
-        break;
-        case 'checkbox':
-          const Cbox = sti.querySelector('label').querySelector('input[type=checkbox]');
-          Cbox.checked = i.value;
-          if(optionAddListenerIds.includes(sti.id)){
-            options.render.select(sti.id);
-          }
-        break;
-        case 'select':
-          const sISelect = sti.querySelector('select');
-          sISelect.value = i.value;
-        break;
-      }
-    });
-  }}
+  if(!LS_accept) return;
+  const stiObj = JSON.parse( localStorage.getItem('sti') );
+  if (!stiObj) return;//检查是否转JSON成功
+  stiObj.forEach(function(i){//单个键值
+    const sti = optionsPage.querySelector(`#${i.id}`);//sti=setting-item元素
+    const sIType = sti.dataset.type;
+    switch(sIType){
+      case 'range':
+        const sIInput = sti.querySelector('input');
+        sIInput.value = i.value;
+        options.render.range(sti);
+      break;
+      case 'checkbox':
+        const Cbox = sti.querySelector('label').querySelector('input[type=checkbox]');
+        Cbox.checked = i.value;
+        if(optionAddListenerIds.includes(sti.id)){
+          options.render.select(sti.id);
+        }
+      break;
+      case 'select':
+        const sISelect = sti.querySelector('select');
+        sISelect.value = i.value;
+      break;
+    }
+  });
   },
   save: function(){
   const sIs = optionsPage.querySelectorAll('.setting-item');
@@ -462,6 +442,7 @@ const options = {
     },
   },
 }
+window.options = options;
 //region 询问LocalStorage
 const oLASection = document.getElementById('option-LS');
 const oLAText = document.getElementById('oLA-text');

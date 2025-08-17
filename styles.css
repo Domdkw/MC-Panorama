@@ -522,6 +522,36 @@ main .half button, .sound_range_div{
   margin: 0 1rem;
 }
 
+#create-page{
+  z-index: 5;
+  display: flex;
+  align-items: center;
+}
+.file-tag{
+  border-radius:5px;
+  padding:3px;
+  font-size: 12px;
+}
+.file-tag.y{
+  color:#000;
+  background-color: #e5c600;
+}
+.file-tag.ml{
+  margin-left:10px;
+}
+.file-tag.mr{
+  margin-right:10px;
+}
+#terminal{
+  position: absolute;
+  z-index: 97;
+  color: #fffa;
+  top: 0;
+  left: 0;
+  background-color: #0005;
+  padding: 5px;
+}
+
 
 @media (max-width: 768px) {
   main .btn-area {

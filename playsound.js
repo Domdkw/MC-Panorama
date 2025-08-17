@@ -14,14 +14,14 @@ let currentVolume = parseFloat(volumeSlider.value);
 
 // 定义一个变量来保存点击音效的 Audio 对象
 let clickAudio = null;
-let firstplay = true;
-volumeSlider.addEventListener('click', ()=>{if(firstplay){
-  firstplay = false;
-  audio.src = './assets/sound/'+selectedAudioFile;
-}
-})
+audio.src = './assets/sound/'+selectedAudioFile;
+//检查滑块是否改变（!==0）
+if (volumeSlider.value !== 0) Playmusic();
 
-volumeSlider.addEventListener('input', function () {
+//侦听滑块状态，改变音量
+volumeSlider.addEventListener('input', ()=>Playmusic());
+
+function Playmusic(){
   currentVolume = parseFloat(volumeSlider.value); // 更新当前音量值
   audio.volume = currentVolume;
   soundstate.textContent = Math.round(currentVolume * 100) + '%';
@@ -32,10 +32,11 @@ volumeSlider.addEventListener('input', function () {
   } else {
     audio.pause();
   }
-});
+}
 
-document.body.addEventListener('click', function (Click_ogg) {
-  const Click_ogg_button = Click_ogg.target.closest('button'); // 查找最近的按钮元素
+//点击音乐
+body.addEventListener('click', function (Click_ogg) {
+  const Click_ogg_button = Click_ogg.target.closest('button') || Click_ogg.target.closest('.canClick'); // 查找最近的按钮元素
   if (Click_ogg_button) {
     if (currentVolume > 0) {
       if (!clickAudio) {

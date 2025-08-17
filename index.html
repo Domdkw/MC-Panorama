@@ -49,100 +49,10 @@
   </style>
 </head>
 <body>
-  <link rel="stylesheet" href="./ponder/item.css">
+  <link rel="stylesheet" href="./ponder/index-item.css">
   <section class="load abso"><img class="bugjump" src="./assets/page/bugjump.png"></img></section>
-  <script>
-    const body = document.body;
-    let fileLoaded = 0;
-    const loadingDiv = document.querySelector('.load');
-    function SNLB(i, range){//setNewLoadBlock
-      const loadstate = document.createElement('div');
-      loadstate.classList.add('loadstate');
-      if (range){
-        loadstate.innerHTML = '<h class="loadinfo"></h><div class="rangebox"><div class="rangeblock"></div></div>';
-      }else{
-        loadstate.innerHTML = '<h class="loadinfo"></h>';
-      }
-      loadingDiv.appendChild(loadstate);
-      const loadinfo = loadstate.querySelector('.loadinfo');
-      const rangeblock = loadstate.querySelector('.rangebox .rangeblock') || null;
-      loadstate.id = i;
-      return {loadstate, loadinfo, rangeblock}
-    }
-    function loadFile(url, type, range, title=`Loading ${url}...`){
-      return new Promise((resolve, reject) => {
-      const {loadstate, loadinfo, rangeblock} = SNLB(url, range);
-      loadinfo.textContent = title;
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);
-      xhr.setRequestHeader('Accept', 'text/plain');
-      xhr.responseType = 'text';
-      xhr.onprogress = (e) => {
-        if (e.lengthComputable && rangeblock) {
-          rangeblock.style.width = `${(e.loaded / e.total) * 100}%`;
-        }
-      }
-      xhr.onload = () => {
-        if (xhr.readyState === 4) {
-          loadstate.style.backgroundColor = '#fff6';
-          let data;
-          loadinfo.textContent = `${url} loaded successfully! (${xhr.status})`;
-          switch (type) {
-          case 'js':
-            const script = document.createElement('script');  
-            script.textContent = xhr.responseText;
-            document.body.appendChild(script);
-            data = undefined;
-            break;
-          case 'css':
-            const style = document.createElement('style');
-            style.textContent = xhr.responseText;
-            body.appendChild(style);
-            data = undefined;
-            break;
-          case 'json':
-            data = JSON.parse(xhr.responseText);
-            break;
-          default:
-            data = xhr.responseText;
-            break;
-          }
-          resolve(data);
-        }else{
-          loadinfo.textContent = `Failed to load ${url}!`;
-        }
-      }
-      xhr.onerror = () => {
-        loadinfo.textContent = `Failed to load ${url}!`;
-      }
-      xhr.send();
-      });
-    }
-    const navLang = navigator.language;
-  </script>
-  <script type="module">
-    async function loadTHREE() {
-      const {loadstate, loadinfo, rangeblock} = SNLB('three', true);
-      loadinfo.textContent = 'Loading the three@0.174.0.js module...';
-      const module = await import('//unpkg.com/three@0.174.0/build/three.module.min.js');
-      try {
-        window.THREE = module;
-        loadinfo.textContent = 'The three@0.174.0.js module is loaded successfully!';
-        rangeblock.style.width = '100%';
-        loadstate.style.backgroundColor = '#fff6';
-        setTimeout(() => {
-          loadMcPanorama();
-        }, 500)
-      }catch (e) {
-        loadinfo.textContent = 'Failed to load the three.js module!';
-        rangeblock.style.width = '0%';
-      }
-    }
-    loadTHREE();
-    //create()
-  </script>
   <audio id="Playmusic"></audio>
-  <section>
+  <section id="app">
     <main id="title" class="unselectable">
       <div style="position: relative;">
         <img class="logo" src="./assets/page/Global-Header_MCCB-Logo_300x51.svg" alt="logo"/>
@@ -287,8 +197,113 @@
       </div>
     </div>
   </section>
-  <script type="text/javascript" src="mc-background.js"></script>
-  <script type="text/javascript" src="playsound.js"></script>
-  <script src="page.js"></script>
+  <section id="terminal"></section>
+  <script>
+    //api
+    const navLang = navigator.language;
+    const body = document.body;
+    const terminal = document.getElementById('terminal')
+    let fileLoaded = 0;
+    const loadingDiv = document.querySelector('.load');
+    function SNLB(i, range){//setNewLoadBlock
+      const loadstate = document.createElement('div');
+      loadstate.classList.add('loadstate');
+      if (range){
+        loadstate.innerHTML = '<h class="loadinfo"></h><div class="rangebox"><div class="rangeblock"></div></div>';
+      }else{
+        loadstate.innerHTML = '<h class="loadinfo"></h>';
+      }
+      loadingDiv.appendChild(loadstate);
+      const loadinfo = loadstate.querySelector('.loadinfo');
+      const rangeblock = loadstate.querySelector('.rangebox .rangeblock') || null;
+      loadstate.id = i;
+      return {loadstate, loadinfo, rangeblock}
+    }
+    function loadFile(url, type, range, title=`Loading ${url}...`){
+      return new Promise((resolve, reject) => {
+      const {loadstate, loadinfo, rangeblock} = SNLB(url, range);
+      loadinfo.innerHTML = title;
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', url, true);
+      xhr.setRequestHeader('Accept', 'text/plain');
+      xhr.responseType = 'text';
+      xhr.onprogress = (e) => {
+        if (e.lengthComputable && rangeblock) {
+          rangeblock.style.width = `${(e.loaded / e.total) * 100}%`;
+        }
+      }
+      xhr.onload = () => {
+        if (xhr.readyState === 4) {
+          loadstate.style.backgroundColor = '#fff6';
+          let data;
+          loadinfo.innerHTML = title+'=>成功-'+xhr.status;
+          switch (type) {
+          case 'js':
+            const e = eval;
+            e(xhr.responseText);
+            data = undefined;
+            break;
+          case 'css':
+            const style = document.createElement('style');
+            style.textContent = xhr.responseText;
+            body.appendChild(style);
+            data = undefined;
+            break;
+          case 'json':
+            data = JSON.parse(xhr.responseText);
+            break;
+          default:
+            data = xhr.responseText;
+            break;
+          }
+          resolve(data);
+        }else{
+          loadinfo.textContent = `Failed to load ${url}!`;
+        }
+      }
+      xhr.onerror = () => {
+        loadinfo.textContent = `Failed to load ${url}!`;
+      }
+      xhr.send();
+      });
+    }
+    let sound_state = false;
+    document.querySelector('.sound_range_div').addEventListener('click', ()=>{//侦听点击
+      if (sound_state) return;
+      sound_state = true;
+      const script = document.createElement('script');
+      script.src = './playsound.js';
+      document.body.appendChild(script);
+    })
+  </script>
+  <script type="module">
+    async function loadTHREE() {
+      const {loadstate, loadinfo, rangeblock} = SNLB('three', true);
+      loadinfo.innerHTML = 'Loading the <span class="file-tag y">three@0.174.0.js</span> module...';
+      const module = await import('https://unpkg.com/three@0.174.0/build/three.module.min.js');
+      try {
+        window.THREE = module;
+        loadinfo.innerHTML = 'The <span class="file-tag y">three@0.174.0.js</span> module is loaded successfully!';
+        rangeblock.style.width = '100%';
+        loadstate.style.backgroundColor = '#fff6';
+        //加载mc-panorama
+        (async ()=>{
+          const promises = [
+            loadFile('mc-background.js', 'js', true, '加载mc-panorama<span class="file-tag y ml">mc-background.js</span>'),
+            loadFile('page.js', 'js', true, '加载必要界面脚本<span class="file-tag y ml">page.js</span>')
+          ];
+          await Promise.all(promises);
+          setTimeout(() => {
+            loadMcPanorama();
+          }, 500);
+        })();
+      }catch (e) {
+        loadinfo.textContent = 'Failed to load the three.js module!';
+        rangeblock.style.width = '0%';
+      }
+    }
+    loadTHREE();
+    //create()
+  </script>
 </body>
 </html>

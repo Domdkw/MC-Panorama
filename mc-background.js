@@ -54,7 +54,7 @@ const promises = imgMirror.map((url, index) =>
 
 // 将函数定义提升到文件顶部
 function loadMcPanorama() {
-  const {loadinfo, rangeblock} = SNLB('texture', true);
+  const {loadstate, loadinfo, rangeblock} = SNLB('texture', true);
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(
     100,
@@ -108,6 +108,7 @@ function loadMcPanorama() {
         loadinfo.innerHTML = `loading texture... ${fileLoaded}/6`;
         rangeblock.style.width = `${(fileLoaded / 6) * 100}%`;
         if(fileLoaded === 6) {
+          loadstate.style.backgroundColor = '#fff6';
           setTimeout(() => {
             loadingDiv.style.opacity = '0';
             setTimeout(() => {
@@ -191,7 +192,8 @@ Promise.allSettled(promises).then(results => {
     minImgRTT = fastest.rtt;
   }
   const {loadinfo}= SNLB('img', false);
-  loadinfo.innerHTML = `imgMirror: ${imgDomain}, imgDate: ${imgDate}, theme: ${theme}`;
+  loadinfo.innerHTML = `<span class="file-tag y mr">mc-background.js</span>=>imgMirror: ${imgDomain}, imgDate: ${imgDate}, theme: ${theme}`;
+
 });
 
 const imgBatch = [
