@@ -1,0 +1,44 @@
+/* 最外层容器样式 */
+#outer-container {
+background-color: #c6c6c6;
+margin: 0 auto;
+width: 400px; /* 4:3比例，宽度设为400px，高度将为300px */
+height: 300px;
+padding: 5px; /* 表格与外部大边框之间的间距 */
+box-sizing: border-box;
+}
+/* 标题盒子样式 */
+.chest-title {
+margin-bottom: 5px;
+}
+.chest-title span {
+font-size: 18px;
+}
+/* 表格样式 */
+#chest-grid {
+width: 100%;
+height: calc(100% - 25px);
+background-color: #d8d8d8;
+}
+#chest-grid td {
+width: 11%; /* 9列等宽 */
+height: 16.6%; /* 6行等高 */
+border: 2px solid #676767; /* 内边框为深灰色 */
+background-color: #8b8b8b; /* 边框内部背景为灰色 */
+}
+#chest-grid td:hover {
+background-color: #a0a0a0;
+}
+#chest-grid td:has(img) {
+cursor: pointer;
+}
+#chest-grid td img {
+max-width: 100%;
+max-height: 100%;
+display: block;
+margin: 0 auto;
+}
+/* 确保表格单元格均匀分布 */
+#chest-grid tr {
+height: 16.6%; /* 6行，每行占1/6 */
+}
