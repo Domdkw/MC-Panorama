@@ -9,6 +9,7 @@ const audioFiles = [
 
 const randomIndex = Math.floor(Math.random() * audioFiles.length);
 const selectedAudioFile = audioFiles[randomIndex];
+terminal.innerHTML = '音频文件：<a href="./assets/sound/'+selectedAudioFile+'">'+selectedAudioFile+'</a>';
 
 let currentVolume = parseFloat(volumeSlider.value);
 
@@ -42,7 +43,6 @@ body.addEventListener('click', function (Click_ogg) {
       if (!clickAudio) {
         // 如果 clickAudio 还没有创建，则创建一个新的 Audio 对象
         clickAudio = new Audio('./assets/sound/Click.ogg.mp3');
-
       }
       clickAudio.volume = currentVolume;
       if (clickAudio.paused) {

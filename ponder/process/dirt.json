@@ -5,7 +5,7 @@
   "icon":"dirt"
 },
 "api":[
-  "domdkw/v1/ponder.js"
+  "domdkw/v1/vanilla.js"
 ],
 "block":[
   "minecraft:dirt"

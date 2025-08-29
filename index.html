@@ -266,10 +266,12 @@
       xhr.send();
       });
     }
-    let sound_state = false;
+    let sound_enable = false;
     document.querySelector('.sound_range_div').addEventListener('click', ()=>{//侦听点击
-      if (sound_state) return;
-      sound_state = true;
+      if (sound_enable) return;
+      sound_enable = true;
+      document.getElementById('sound_state').textContent = 'Loading';
+      terminal.innerHTML = '加载音乐脚本文件(playsound.js)';
       const script = document.createElement('script');
       script.src = './playsound.js';
       document.body.appendChild(script);
