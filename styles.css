@@ -52,6 +52,10 @@ a:hover{
   -ms-user-select: none;     /* IE 10+ */  
   user-select: none;         /* Likely future */  
 }
+.pixelated{
+  image-rendering: pixelated;
+}
+
 main{
   position: absolute;
   left: 0;

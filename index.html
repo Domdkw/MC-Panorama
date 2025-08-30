@@ -72,7 +72,7 @@
             </div>
             <input type="range" id="volume_slider" min="0" max="1" step="0.01" value="0">
           </div>
-          <button id="lang_btn" title="language语言" onclick="showlang()"><img src="./assets/page/lang-ico.png" alt="lang-ico"></button>
+          <button id="lang_btn" title="language语言" onclick="showlang()"><img class="pixelated" src="./assets/page/icon/language.png" alt="lang-ico"></button>
         </div>
       </div>
     </main>
@@ -297,7 +297,7 @@
           setTimeout(() => {
             loadMcPanorama();
             //create()
-          }, 500);
+          }, 100);
         })();
       }catch (e) {
         loadinfo.textContent = 'Failed to load the three.js module!';
