@@ -4,6 +4,7 @@
   "size":"normal",
   "icon":"dirt"
 },
+"indexes":"minecraft/indexes/lastest.json",
 "api":[
   "domdkw/v1/vanilla.js"
 ],

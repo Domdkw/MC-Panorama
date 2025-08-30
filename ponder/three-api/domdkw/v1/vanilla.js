@@ -1,7 +1,8 @@
-let textureMap = {}
+let MCTextureMap;
 (async()=>{
-  textureMap.mc = await loadFile('/ponder/three-api/domdkw/v1/mc.texturemap.json')
-  
+  const index = window.Process.indexes;
+  if(!index) return;
+  MCTextureMap = await loadFile('/ponder/'+index, 'json', true, `<span class="file-tag mr y">vanilla.js</span>=><span class="file-tag mr ml y">${index}</span>加载贴图映射文件`)
 })();
 function fallAnimation(obj, startY) {//方块下落动画
   let startTime = null;

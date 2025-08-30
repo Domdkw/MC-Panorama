@@ -92,7 +92,6 @@ function loadMcPanorama() {
   //加载进度条
   tli.innerHTML = 'loading texture... ';
   trb.style.width = '0%';
-  xli.innerHTML = 'texture XHR status:';
   xrb.style.width = '0%';
 
   // 创建绘图
@@ -132,6 +131,7 @@ function loadMcPanorama() {
   
   // 使用XMLHttpRequest获取图片大小
   function getImageSize(url) {
+    xli.innerHTML = `texture XHR status: getImageSize -xhr(HEAD)`;
     return new Promise((resolve) => {
       const xhr = new XMLHttpRequest();
       xhr.open('HEAD', url, true);
@@ -196,7 +196,7 @@ function loadMcPanorama() {
     // 只有当整数百分比变化时才更新DOM
     if (roundedPercent !== lastDisplayedPercent) {
       xrb.style.width = `${roundedPercent}%`;
-      xli.innerHTML = `texture XHR status: ${roundedPercent}%`;
+      xli.innerHTML = `texture XHR status: ${roundedPercent}%_${progress.loaded}/${progress.total}`;
       lastDisplayedPercent = roundedPercent;
     }
   }
