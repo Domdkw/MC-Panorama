@@ -187,14 +187,24 @@ main .half button, .sound_range_div{
   background-color: #2a2a2aa9;
   cursor: pointer;
 }
-#lang_btn{
-  width: var(--btn-height);
-  height: var(--btn-height);
-  padding: 3px;
+main .outside-btn{
+  width: var(--btn-height) !important;
+  height: var(--btn-height) !important;
   position: absolute;
+}
+#lang_btn{
+  padding: 3px;
   left: -3.6rem;
 }
 #lang_btn img{
+  width: 100%;
+  height: 100%;
+}
+#report_btn{
+  padding: 3px;
+  right: -3.6rem;
+}
+#report_btn img{
   width: 100%;
   height: 100%;
 }

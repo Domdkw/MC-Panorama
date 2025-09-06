@@ -64,7 +64,7 @@
           <button id="options" onclick="options.show();">选项</button>
         </div>
         <div class="half">
-          <button id="home_page" onclick="cd('\/\/www.prcooker.asia', null)">主页</button>
+          <button id="home_page" onclick="cd('https\:\/\/github.com/Domdkw/MC-Panorama', null)">主页</button>
           <div class="sound_range_div">
             <div>            
               <span id="bg_music_text">音乐：</span>
@@ -72,7 +72,8 @@
             </div>
             <input type="range" id="volume_slider" min="0" max="1" step="0.01" value="0">
           </div>
-          <button id="lang_btn" title="language语言" onclick="showlang()"><img class="pixelated" src="./assets/page/icon/language.png" alt="lang-ico"></button>
+          <button id="lang_btn" title="language语言" class="outside-btn" onclick="showlang()"><img class="pixelated" src="./assets/page/icon/language.png" alt="lang-ico"></button>
+          <button id="report_btn" title="report报告" class="outside-btn" onclick="cd('https\:\/\/github.com/Domdkw/MC-Panorama/issues', 'GitHub访问链接，中国大陆用户可以通过访问https\:\/\/gitee.com/Domdkw/MC-Panorama/issues来报告问题')"><img class="pixelated" src="./assets/page/dialog/warning_button.png" alt="report-ico"></button>
         </div>
       </div>
     </main>
@@ -279,6 +280,7 @@
   </script>
   <script type="module">
     async function loadTHREE() {
+      loadFile('page.js', 'js', true, '加载必要界面脚本<span class="file-tag y ml">page.js</span>')
       const {loadstate, loadinfo, rangeblock} = SNLB('three', true);
       loadinfo.innerHTML = 'Loading the <span class="file-tag y">three@0.174.0.js</span> module...';
       const module = await import('https://unpkg.com/three@0.174.0/build/three.module.min.js');
@@ -288,17 +290,11 @@
         rangeblock.style.width = '100%';
         loadstate.style.backgroundColor = '#fff6';
         //加载mc-panorama
-        (async ()=>{
-          const promises = [
-            loadFile('mc-background.js', 'js', true, '加载mc-panorama<span class="file-tag y ml">mc-background.js</span>'),
-            loadFile('page.js', 'js', true, '加载必要界面脚本<span class="file-tag y ml">page.js</span>')
-          ];
-          await Promise.all(promises);
-          setTimeout(() => {
-            loadMcPanorama();
-            //create()
-          }, 100);
-        })();
+        await loadFile('mc-background.js', 'js', true, '加载mc-panorama<span class="file-tag y ml">mc-background.js</span>')
+        setTimeout(() => {
+          loadMcPanorama();
+          //create()
+        }, 100);
       }catch (e) {
         loadinfo.textContent = 'Failed to load the three.js module!';
         rangeblock.style.width = '0%';

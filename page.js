@@ -170,7 +170,7 @@ function cd(url, text){
       }
     }
     if(text){
-      cd_text.textContent = text; 
+      cd_text.innerHTML = text; 
     }
   }else{
     title_main.style.display = 'flex';

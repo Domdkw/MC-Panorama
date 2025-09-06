@@ -1,3 +1,30 @@
+const imgBatch = [
+  "2412",
+  "2501",
+  "2502",
+  "create",
+];
+const imgLink = [
+  ["https://i.postimg.cc",'wB0z0pYJ','sfBBQn5K','L4rJzzTS','QCWr8K9k','Tw16s4Ts','wvrpYQvj','hhWRf4VF','NjtLnBSP','8zbsQxVk','nLcrHTH4','xTMcgcxz','QM4tV5tR','hjXGmjQh','x8HTs4R2','Px05Qj1y','9F5f4cmF','DfbZySKM','QdSNn5pH','QxQd1vCg','htKPrMQk','rpmy6mJg','bJSzJB4t','N0zsQcCt','5ycfFmMk',
+    'MHk38znj','SxZZx6X4','WbvYWbRB','2y4ckgW9','05mH0K4G','ZKx71t4C','sgf6z6gK','ydRnj2L6','KjyfHQWP','66dYvJ7Y','0NbVMzmw','GtJKwG0Z',
+]
+];
+const imgDate = imgBatch[Math.floor(Math.random() * imgBatch.length)];// 0: 2412 1: 2501 2: 2502 3: create
+const hours = new Date().getHours();
+let theme = "null";
+if (imgDate === "2412" || imgDate === "2501") {
+  if (hours <= 7 || hours > 18) {
+    theme = "night";
+  }else{
+    theme = "day"; 
+  }
+}
+// 保留本地图片源功能模块但默认不启用
+// 仅当需要时通过参数启用
+const enableLocalSource = false; // 设置为true以启用本地资源
+const velocity = 0.0004;
+
+
 // RTT 函数优化 - 添加更好的资源清理
 function RTT(url, timeout = 5000) {
   return new Promise((resolve) => {
@@ -40,24 +67,31 @@ function RTT(url, timeout = 5000) {
 //img-choose
 //mirror
 const imgMirror = ['i.postimg.cc'];
-let imgDomain = 0, minImgRTT = -1;
+let imgDomain = 0, minImgRTT = -1;// 0: 本地 1: 远程;
+
+// 添加控制变量，用于禁用镜像检测功能
+const disableMirrorDetection = true;
 
 // 修改后的镜像检测逻辑
-const promises = imgMirror.map((url, index) => 
-  RTT(url).then(rtt => {
-    // 原子化更新最小值
-    if (rtt > 0) {
-      performance.mark(`mirror-test-${index}`);
-      const currentMin = minImgRTT;
-      if (currentMin === -1 || rtt < currentMin) {
-        minImgRTT = rtt;
-        imgDomain = index + 1; // 索引从1开始
+// 通过变量控制是否执行镜像检测
+let promises = [];
+if (!disableMirrorDetection) {
+  promises = imgMirror.map((url, index) => 
+    RTT(url).then(rtt => {
+      // 原子化更新最小值
+      if (rtt > 0) {
+        performance.mark(`mirror-test-${index}`);
+        const currentMin = minImgRTT;
+        if (currentMin === -1 || rtt < currentMin) {
+          minImgRTT = rtt;
+          imgDomain = index + 1; // 索引从1开始
+        }
+        performance.measure(`mirror-${index}`, `mirror-test-${index}`);
       }
-      performance.measure(`mirror-${index}`, `mirror-test-${index}`);
-    }
-    return { index, rtt };
-  })
-);
+      return { index, rtt };
+    })
+  );
+}
 
 // 将函数定义提升到文件顶部
 function loadMcPanorama() {
@@ -202,7 +236,7 @@ function loadMcPanorama() {
   }
   
   // 创建材质的函数
-  function createMaterial(index) {
+  function createMaterial() {
     // 创建一个临时材质，稍后会更新纹理
     const material = new THREE.MeshBasicMaterial({
       color: new THREE.Color(0xffffff), // 初始设置为白色
@@ -213,7 +247,7 @@ function loadMcPanorama() {
   
   // 更新材质纹理的函数
   // 更新材质纹理的函数
-  function updateMaterialTexture(material, img, index) {
+  function updateMaterialTexture(material, img) {
     // 创建纹理
     const texture = new THREE.Texture(img);
     texture.needsUpdate = true;
@@ -429,48 +463,35 @@ function loadMcPanorama() {
 
 // 修改 Promise.allSettled 的回调部分
 // 增强兜底逻辑
-Promise.allSettled(promises).then(results => {
-  const validResults = results
-    .filter(r => r.status === 'fulfilled' && r.value.rtt > 0)
-    .map(r => r.value);
+// 通过变量控制是否执行镜像检测逻辑
+if (!disableMirrorDetection) {
+  Promise.allSettled(promises).then(results => {
+    const validResults = results
+      .filter(r => r.status === 'fulfilled' && r.value.rtt > 0)
+      .map(r => r.value);
 
-  if (validResults.length === 0) {
-    console.warn('All mirrors failed, using local resources');
-    imgDomain = 0;
-    minImgRTT = -1;
-  } else {
-    // 找到响应最快的镜像
-    const fastest = validResults.reduce((prev, current) => 
-      current.rtt < prev.rtt ? current : prev
-    );
-    imgDomain = fastest.index + 1;
-    minImgRTT = fastest.rtt;
-  }
-  const {loadinfo}= SNLB('img', false);
-  loadinfo.innerHTML = `<span class="file-tag y mr">mc-background.js</span>=>imgMirror: ${imgDomain}, imgDate: ${imgDate}, theme: ${theme}`;
-
-});
-
-const imgBatch = [
-  "2412",
-  "2501",
-  "2502",
-  "create",
-];
-const imgLink = [
-  ["https://i.postimg.cc",'wB0z0pYJ','sfBBQn5K','L4rJzzTS','QCWr8K9k','Tw16s4Ts','wvrpYQvj','hhWRf4VF','NjtLnBSP','8zbsQxVk','nLcrHTH4','xTMcgcxz','QM4tV5tR','hjXGmjQh','x8HTs4R2','Px05Qj1y','9F5f4cmF','DfbZySKM','QdSNn5pH','QxQd1vCg','htKPrMQk','rpmy6mJg','bJSzJB4t','N0zsQcCt','5ycfFmMk',
-    'MHk38znj','SxZZx6X4','WbvYWbRB','2y4ckgW9','05mH0K4G','ZKx71t4C','sgf6z6gK','ydRnj2L6','KjyfHQWP','66dYvJ7Y','0NbVMzmw','GtJKwG0Z',
-]
-];
-const imgDate = imgBatch[Math.floor(Math.random() * imgBatch.length)];// 0: 2412 1: 2501 2: 2502 3: create
-const hours = new Date().getHours();
-var theme = "null";
-if (imgDate === "2412" || imgDate === "2501") {
-  if (hours <= 7 || hours > 18) {
-    theme = "night";
-  }else{
-    theme = "day"; 
-  }
+    if (validResults.length === 0) {
+      console.warn('All mirrors failed, using local resources');
+      imgDomain = 0;
+      minImgRTT = -1;
+    } else {
+      // 找到响应最快的镜像
+      const fastest = validResults.reduce((prev, current) => 
+        current.rtt < prev.rtt ? current : prev
+      );
+      imgDomain = fastest.index + 1;
+      minImgRTT = fastest.rtt;
+    }
+    const {loadinfo:mrtl1}= SNLB('img', false);
+    mrtl1.innerHTML = `<span class="file-tag y mr">mc-background.js</span>=>imgMirror: ${imgDomain}, imgDate: ${imgDate}, theme: ${theme}`;
+  });
+} else {
+  // 禁用镜像检测时，直接使用本地资源
+  imgDomain = 0;
+  minImgRTT = -1;
+  const {loadinfo:mrtl2}= SNLB('imgWarn', false);
+  mrtl2.style.backgroundColor = '#dbbe03b3';
+  mrtl2.style.fontSize = '14px'
+  mrtl2.style.fontWeight = 'normal'
+  mrtl2.innerHTML = `<span class="file-tag y mr">mc-background.js</span>=>imgDomain=0,'use local'.imgDate: ${imgDate}, theme: ${theme}<br>⚠The image mirror source has been disabled.<br>-The image transfer rate may be affected.UI option cannot be operated.<br>-at mc-background.js enabledLocalSource=false`;
 }
-//imgDomain = 0; // 0: 本地 1: 远程;
-const velocity = 0.0004;
