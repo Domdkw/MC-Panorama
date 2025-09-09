@@ -489,8 +489,8 @@ if (!disableMirrorDetection) {
   // 禁用镜像检测时，直接使用本地资源
   imgDomain = 0;
   minImgRTT = -1;
-  const {loadinfo:mrtl2}= SNLB('imgWarn', false);
-  mrtl2.style.backgroundColor = '#dbbe03b3';
+  const {loadinfo:mrtl2, loadstate:mrts2}= SNLB('imgWarn', false);
+  mrts2.style.backgroundColor = '#dbbe03b3';
   mrtl2.style.fontSize = '14px'
   mrtl2.style.fontWeight = 'normal'
   mrtl2.innerHTML = `<span class="file-tag y mr">mc-background.js</span>=>imgDomain=0,'use local'.imgDate: ${imgDate}, theme: ${theme}<br>⚠The image mirror source has been disabled.<br>-The image transfer rate may be affected.UI option cannot be operated.<br>-at mc-background.js enabledLocalSource=false`;
