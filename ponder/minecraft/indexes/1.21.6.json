@@ -1,0 +1,6 @@
+{
+    "minecraft:dirt":{
+        "side":6,
+        "url":"block/dirt.png"
+    }
+}

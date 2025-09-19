@@ -1,25 +1,38 @@
 {
-"title":"dirt",
-"titleIcon":{
-  "size":"normal",
-  "icon":"dirt"
+"title":{
+  "name":"dirt",
+  "icon":{
+    "size":"normal",
+    "tag":"minecraft:dirt"
+  }
 },
-"indexes":"minecraft/indexes/lastest.json",
-"api":[
-  "domdkw/v1/vanilla.js"
-],
-"block":[
-  "minecraft:dirt"
-],
+"loader":{
+  "indexes":"minecraft/indexes/1.21.6.json",
+  "api":[
+    "domdkw/v1/vanilla.js"
+  ],
+  "boot":{
+    "html":"/ponder/engine/domdkw/v1/nogltf.boot.html"
+  },
+  "threePlugins":"none",
+  "block":[
+    "minecraft:dirt"
+  ]
+},
 "scenes":[
   {
     "description":"dirt is a block that is found in the overworld.",
     "base":{
-      "createDefault":"5x5",
-      "createDefault-set":"center",
-      "x-offset":0,
-      "y-offset":-1,
-      "z-offset":0
+      "default":"create",
+      "create":{
+        "size":"5x5",
+        "set":"center",
+        "offset":{
+          "x":0,
+          "y":-1,
+          "z":0
+        }
+      }
     },
     "fragment":{
       "0":[
@@ -28,18 +41,13 @@
         "tip(0,0,0,'This is a dirt block!')"
       ],
       "1":[
-        "fill('dirt',-1,2,0,2,4,2)",
+        "setblockfall('dirt',-1,2,0,2,4,2)",
         "idle(1)"
       ]
     }
   },
   {
     "base":{
-      "createDefault":"3x3",
-      "createDefault-set":"0",
-      "x-offset":0,
-      "y-offset":0,
-      "z-offset":0
     },
     "fragment":{
     }

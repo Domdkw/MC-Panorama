@@ -1,0 +1,6 @@
+<script>
+    for (let i = 0; i < Process.loader.api.length; i++) {
+        const api = Process.loader.api[i];
+        loadFile('/ponder/engine/'+api, 'js', true);
+    }
+</script>

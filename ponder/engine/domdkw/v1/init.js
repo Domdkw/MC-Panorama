@@ -5,7 +5,6 @@ const renderer = new THREE.WebGLRenderer({
     alpha: true,
 });
 const geometry = new THREE.BoxGeometry();
-const textureLoader = new THREE.TextureLoader();
 camera.position.set(5, 5, 5);
 camera.lookAt(0, 0, 0);
 renderer.outputColorSpace = THREE.SRGBColorSpace;

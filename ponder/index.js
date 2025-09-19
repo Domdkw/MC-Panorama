@@ -155,20 +155,70 @@ async function ponderApiLoad() {
   }, 100);
 
   //释放界面元素
-  sf('移除界面元素=>[chest-grid, options-page, app]');
+  sf('移除界面元素=>[create-page, options-page, app]');
   terminal.innerHTML = '';
-  document.getElementById('chest-grid').remove();
+  document.getElementById('create-page').remove();
   document.getElementById('options-page').remove();
   document.getElementById('app').remove();
 
   //加载Process文件，调用/index-loadFile函数，读取文件内容得到ponderAPI地址
   window.Process = await loadFile( processURL, 'json', true, '加载思索流程<span class="file-tag y ml">'+processURL+'</span>');
   //从Process文件中获取ponderAPI地址
-  ponderApi = Process.api;
-  sf('获取思索程序接口=>'+ponderApi);
-  //加载PonderAPI到body
-  for(let i=0; i<ponderApi.length; i++){
-    loadFile('./ponder/three-api/'+ponderApi[i], 'js', true, '加载思索程序接口<span class="file-tag y ml">'+ponderApi[i]+'</span>');
+  ponderApi = Process.loader.api;
+  sf('api=>'+ponderApi);
+  //获取boot地址
+  if(Process.loader.boot.html){
+    fetch(Process.loader.boot.html)
+      .then(response => response.text())
+      .then(html => {
+        try {
+          // 创建一个临时容器元素
+          const tempContainer = document.createElement('div');
+          // 将获取到的HTML内容设置为临时容器的innerHTML
+          tempContainer.innerHTML = html;
+          
+          // 处理临时容器中的所有子元素
+          const children = Array.from(tempContainer.children);
+          let hasNonScriptElements = false;
+          let sectionContainer = null;
+          
+          children.forEach(child => {
+            if (child.tagName === 'SCRIPT') {
+              // 如果是script标签，直接添加到body中执行
+              const script = document.createElement('script');
+              if (child.src) {
+                script.src = child.src;
+              } else {
+                script.textContent = child.textContent;
+              }
+              if (child.type) script.type = child.type;
+              if (child.async) script.async = child.async;
+              if (child.defer) script.defer = child.defer;
+              document.body.appendChild(script);
+            } else {
+              // 对于非script标签，创建section容器
+              if (!hasNonScriptElements) {
+                hasNonScriptElements = true;
+                sectionContainer = document.createElement('section');
+                sectionContainer.className = 'boot-html-container';
+                document.body.appendChild(sectionContainer);
+              }
+              sectionContainer.appendChild(child.cloneNode(true));
+            }
+          });
+          
+          sf('boot.html内容已按规则处理并添加到body');
+        } catch (error) {
+          console.error('Failed to process boot HTML content:', error);
+          // 直接创建一个script元素作为后备方案
+          const script = document.createElement('script');
+          script.textContent = html;
+          document.body.appendChild(script);
+          sf('boot.html注入(后备方案)');
+        }
+      })
+      .catch(error => {
+        console.error('Failed to load boot HTML:', error);
+      });
   }
 }
-
