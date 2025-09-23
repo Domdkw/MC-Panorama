@@ -22,3 +22,8 @@ const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
 const pointLight = new THREE.PointLight(0xffffff, 2.5);
 pointLight.position.set(5, 5, 5);
 scene.add(pointLight, ambientLight);
+
+// 将 scene, camera, renderer 暴露到全局作用域
+window.scene = scene;
+window.camera = camera;
+window.renderer = renderer;

@@ -4,7 +4,7 @@ let LS_accept = localStorage.getItem('LS_accept') || false;
 let sti_moreOoops = false;
 //sti let end
 //自动应用LS信息25.7.31
-if(LS_accept){
+if(LS_accept && localStorage.getItem('sti')){
   const stiObj = JSON.parse( localStorage.getItem('sti') );
   stiObj.forEach(function(i){//单个键值
     switch(i.id){
@@ -325,9 +325,6 @@ const options = {
     if (!sti) return; //如果不是setting-item元素,直接返回
     const sIType = sti.dataset.type;
     switch(sIType){
-      case 'range':
-          options.render.range(sti);
-        break;
       case 'checkbox':
           // 当复选框类型改变时，调用select方法
           if(optionAddListenerIds.includes(sti.id)){
@@ -361,11 +358,6 @@ const options = {
     const sti = optionsPage.querySelector(`#${i.id}`);//sti=setting-item元素
     const sIType = sti.dataset.type;
     switch(sIType){
-      case 'range':
-        const sIInput = sti.querySelector('input');
-        sIInput.value = i.value;
-        options.render.range(sti);
-      break;
       case 'checkbox':
         const Cbox = sti.querySelector('label').querySelector('input[type=checkbox]');
         Cbox.checked = i.value;
@@ -386,10 +378,6 @@ const options = {
   sIs.forEach(function(sI){
     const sIType = sI.dataset.type;
     switch(sIType){
-    case 'range':
-      const sIInput = sI.querySelector('input');
-      result.push({id: sI.id,value: sIInput.value});
-    break;
     case 'checkbox':
       const Cbox = sI.querySelector('label').querySelector('input[type=checkbox]');
       result.push({id: sI.id,value: Cbox.checked});
@@ -405,17 +393,6 @@ const options = {
   }
   },
   render: {//render:渲染动态更改的元素
-    range: function(sti){//sti=setting-item元素,
-      const id = sti.id;
-      const sV = sti.querySelector('.setting-value');//设置中每项的值
-      const value = sti.querySelector('input').value;//重新渲染画面
-      switch(id){
-        case 'sti-imgMirror':
-          const t = ['Cloudflare Pages', 'Github Repositories(raw)', 'Gitee码云仓库', 'postimages.org', 'Auto自动']
-          sV.textContent = t[value];
-        break;
-      }
-    },
     select: function(id){
       switch(id){// 使用switch处理不同ID的情况
         case 'sti-moreooops':
@@ -456,6 +433,22 @@ const options = {
       stiLScleanSti.innerHTML = 'LocalStorage.sti已清除';
       stiLScleanAll.innerHTML = '所有LocalStorage已清除';
     },
+  },
+  subPage: function(page){
+    //子界面切换
+    const settingDivs = optionsPage.querySelectorAll('.setting-div');
+    settingDivs.forEach(function(div){
+      div.classList.remove('show');
+    });
+    const activeDiv = optionsPage.querySelector(`.setting-div.${page}`);
+    activeDiv.classList.add('show');
+    //Tab按钮样式更改
+    const tabs = optionsPage.querySelectorAll('.tab');
+    tabs.forEach(function(tab){
+      tab.classList.remove('active');
+    });
+    const activeTab = optionsPage.querySelector(`.tab[onclick="options.subPage('${page}')"]`);
+    activeTab.classList.add('active');
   },
 }
 window.options = options;

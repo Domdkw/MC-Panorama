@@ -1,6 +1,7 @@
 <script>
-    for (let i = 0; i < Process.loader.api.length; i++) {
-        const api = Process.loader.api[i];
-        loadFile('/ponder/engine/'+api, 'js', true);
+    for (let i = 0; i < Process.loader.engine.length; i++) {
+        const engine = Process.loader.engine[i];
+        console.log('加载engine', engine);
+        loadFile('/ponder/engine/'+engine, 'js', true);
     }
 </script>

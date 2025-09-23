@@ -210,6 +210,7 @@ main .outside-btn{
 }
 .dirt{
   backdrop-filter: blur(5px);
+  -webkit-backdrop-filter: blur(5px);
 }
 #lang-div{
   z-index: 2;
@@ -407,13 +408,15 @@ main .outside-btn{
 }
 .tab.done{
   float: right;
-  border-color: #fff;
 }
 .settings-container {
   background-color: #00000078;
   padding: .2rem;
-  height: 80%;
+  margin-left: 5px;
   overflow-y: auto;
+}
+.setting-div:not(.show) {
+  display: none;
 }
 .setting-item, .setting-child{
   margin-bottom: .2rem;
@@ -500,7 +503,6 @@ main .outside-btn{
   font-size: 16px;
 }
 .sti-LS-info-btn{
-  width: 100%;
   border: none;
   font-size: 16px;
   margin: 0;

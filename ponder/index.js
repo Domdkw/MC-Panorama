@@ -163,10 +163,7 @@ async function ponderApiLoad() {
 
   //加载Process文件，调用/index-loadFile函数，读取文件内容得到ponderAPI地址
   window.Process = await loadFile( processURL, 'json', true, '加载思索流程<span class="file-tag y ml">'+processURL+'</span>');
-  //从Process文件中获取ponderAPI地址
-  ponderApi = Process.loader.api;
-  sf('api=>'+ponderApi);
-  //获取boot地址
+  //获取boot
   if(Process.loader.boot.html){
     fetch(Process.loader.boot.html)
       .then(response => response.text())
@@ -210,11 +207,6 @@ async function ponderApiLoad() {
           sf('boot.html内容已按规则处理并添加到body');
         } catch (error) {
           console.error('Failed to process boot HTML content:', error);
-          // 直接创建一个script元素作为后备方案
-          const script = document.createElement('script');
-          script.textContent = html;
-          document.body.appendChild(script);
-          sf('boot.html注入(后备方案)');
         }
       })
       .catch(error => {

@@ -49,7 +49,7 @@
   </style>
 </head>
 <body>
-  <section class="load abso"><img class="bugjump" src="./assets/page/bugjump.png"></img></section>
+  <section class="load abso"><img class="bugjump" src="./assets/page/bugjump.png" alt="BUGJUMP"></img></section>
   <audio id="Playmusic"></audio>
   <section id="app">
     <main id="title" class="unselectable">
@@ -64,7 +64,7 @@
           <button id="options" onclick="options.show();">选项</button>
         </div>
         <div class="half">
-          <button id="home_page" onclick="cd('https\:\/\/github.com/Domdkw/MC-Panorama', null)">主页</button>
+          <button id="home_page" onclick="cd('https\:\/\/github.com/Domdkw/MC-Panorama', 'GitHub开源地址')">主页</button>
           <div class="sound_range_div">
             <div>            
               <span id="bg_music_text">音乐：</span>
@@ -135,40 +135,50 @@
     </section>
     <section id="options-page" class="abso dirt unselectable">
       <div class="tab-container">
-        <button class="tab active canClick">通用</button>
-        <button class="tab disabled canClick">Quality</button>
+        <button class="tab active canClick" onclick="options.subPage('General')">通用</button>
+        <button class="tab canClick" onclick="options.subPage('Browser')">浏览器信息</button>
         <button class="tab done canClick" onclick="options.hide();options.save()">完成</button>
       </div>
-      <div class="settings-container bt-scroll">
-        <div id="sti-imgMirror" class="setting-item range" data-type="range">
-          <span class="setting-label">全景图镜像源</span>
-          <span class="setting-remind">*加快拉取速度。*默认关闭镜像</span>
-          <input class="canClick" type="range" min="0" max="4" step="1" value="0" disabled>
-          <span class="setting-value">本地</span>
-        </div>
-        <div id="sti-moreooops" class="setting-item checkbox" data-type="checkbox">
-            <span class="setting-label">启用更多ooops信息</span>
-            <label class="canClick"><input class="canClick" type="checkbox"></label>
-        </div>
-        <div id="sti-ooops-source" class="setting-item chd disabled" data-type="select">
-          <span class="setting-label">--ooops信息来源</span>
-          <span class="setting-remind"></span>
-          <select name="ooops-source" disabled>
-            <option value="gitee" selected>本地</option>
-          </select>
-        </div>
-        <hr>
-        <div class="sti-LS-div setting-child sti-LS-info-sti">
-          <button class="sti-LS-info-btn tab canClick" onclick="options.btn.showLSInfoSti()">查看LocalStorage.sti信息</button>
-        </div>
-        <div class="sti-LS-div setting-child sti-LS-info-all">
-          <button class="sti-LS-info-btn tab canClick" onclick="options.btn.showLSInfoAll()">查看所有LocalStorage信息</button>
-        </div>
-        <div class="sti-LS-div setting-child sti-LS-clean-sti">
-          <button class="sti-LS-info-btn tab canClick" onclick="options.btn.cleanLS()">清除LocalStorage.sti信息</button>
-        </div>
-        <div class="sti-LS-div setting-child sti-LS-clean-all">
-          <button class="sti-LS-info-btn tab canClick" onclick="options.btn.cleanAllLS()">清除所有LocalStorage信息</button>
+      <div class="setting-main">
+        <div class="settings-container bt-scroll">
+          <div class="setting-div General show">
+            <div id="sti-imgMirror" class="setting-item select" data-type="select">
+              <span class="setting-label">全景图镜像源</span>
+              <select name="imgMirror-source">
+                <option value="local" selected>本地</option>
+                <option value="jsDeliver" disabled>jsDeliver</option>
+              </select>
+            </div>
+            <div id="sti-moreooops" class="setting-item checkbox" data-type="checkbox">
+                <span class="setting-label">启用更多ooops信息</span>
+                <label class="canClick"><input class="canClick" type="checkbox"></label>
+            </div>
+            <div id="sti-ooops-source" class="setting-item chd disabled" data-type="select">
+              <span class="setting-label">--ooops信息来源</span>
+              <span class="setting-remind"></span>
+              <select name="ooops-source" disabled>
+                <option value="local" selected>本地</option>
+              </select>
+            </div>
+          </div>
+          <div class="setting-div Browser">
+            <div class="sti-LS-div setting-child sti-LS-info-sti">
+              <button class="sti-LS-info-btn tab canClick" onclick="options.btn.showLSInfoSti()">查看LocalStorage.sti</button>
+            </div>
+            <div class="sti-LS-div setting-child sti-LS-info-all">
+              <button class="sti-LS-info-btn tab canClick" onclick="options.btn.showLSInfoAll()">查看所有LocalStorage</button>
+            </div>
+            <div class="sti-LS-div setting-child sti-LS-clean-sti">
+              <button class="sti-LS-info-btn tab canClick" onclick="options.btn.cleanLS()">清除LocalStorage.sti</button>
+            </div>
+            <div class="sti-LS-div setting-child sti-LS-clean-all">
+              <button class="sti-LS-info-btn tab canClick" onclick="options.btn.cleanAllLS()">清除所有LocalStorage</button>
+            </div>
+            <hr>
+            <div id="service-provider" style="display:flex;justify-content:space-evenly;align-items:center;height:10rem;">
+              <button onclick="document.getElementById('service-provider').innerHTML=service_provider">服务提供商</button>
+            </div>
+          </div>
         </div>
       </div>
     </section>  
@@ -277,13 +287,14 @@
       script.src = './playsound.js';
       document.body.appendChild(script);
     })
+    const service_provider = '<a href="https://www.netlify.com"><img src="https://www.netlify.com/assets/badges/netlify-badge-color-accent.svg" alt="Deploys by Netlify" /></a><a class="badge" href="https://www.jsdelivr.com/package/npm/three" title="jsDelivr monthly hits"><img alt="jsDelivr 每月点击徽章" src="https://data.jsdelivr.com/v1/package/npm/three/badge"></a><a class="main-logo" href="https://www.jsdelivr.com" title="jsDelivr"><img width="140" height="34" title="jsDelivr" src="https://www.jsdelivr.com/assets/f14dc4533f22bdb854b88e243bdbaa447249ae7a/img/jsdelivr-horizontal-regular.svg"></a>';
   </script>
   <script type="module">
     async function loadTHREE() {
       loadFile('page.js', 'js', true, '加载必要界面脚本<span class="file-tag y ml">page.js</span>')
       const {loadstate, loadinfo, rangeblock} = SNLB('three', true);
       loadinfo.innerHTML = 'Loading the <span class="file-tag y">three@0.174.0.js</span> module...';
-      const module = await import('https://unpkg.com/three@0.174.0/build/three.module.min.js');
+      const module = await import('https://jsd.onmicrosoft.cn/npm/three@0.174.0/build/three.module.min.js');
       try {
         window.THREE = module;
         loadinfo.innerHTML = 'The <span class="file-tag y">three@0.174.0.js</span> module is loaded successfully!';
@@ -293,7 +304,7 @@
         await loadFile('mc-background.js', 'js', true, '加载mc-panorama<span class="file-tag y ml">mc-background.js</span>')
         setTimeout(() => {
           loadMcPanorama();
-          create()
+          //create()
         }, 100);
       }catch (e) {
         loadinfo.textContent = 'Failed to load the three.js module!';
