@@ -41,6 +41,7 @@
         "setblockfall('minecraft:dirt',0,0,5)",
         "setblockfall('minecraft:light_gray_concrete_powder',0,1,5)",
         "idle(1)",
+        "moveCamera(true,-2,10,14,5)",
         "setblockfall('minecraft:bedrock',0,0,0)",
         "setblockfall('minecraft:bedrock',1,0,0)",
         "idle(0.5)",

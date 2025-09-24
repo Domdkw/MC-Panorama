@@ -1,11 +1,11 @@
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(35, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ 
     antialias: true,
     alpha: true,
 });
 const geometry = new THREE.BoxGeometry();
-camera.position.set(12, 9, 10);
+camera.position.set(12, 10, 10);
 camera.lookAt(0, 0, 0);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.setSize(window.innerWidth, window.innerHeight);
@@ -171,7 +171,7 @@ function startPreload() {
   });
 };
 
-//plugins start
+// plugins start
 function blockFallAnimation(obj, startY) {//方块下落动画
   let startTime = null;
 
@@ -194,6 +194,7 @@ function blockFallAnimation(obj, startY) {//方块下落动画
   }
   requestAnimationFrame(animate);
 }
+
 function CreateBase(sceneNum){//创建CreateBase场景
   const createBase = window.Process.scenes[sceneNum].base.create;
   //main -style
@@ -245,11 +246,12 @@ function parseFragment(sceneNum){
     let command = '';
     const fragment = scene.fragment[i];
     for(let j = 0; j < fragment.length; j++){
-      // 检查是否以 idle 或 tip 开头（函数调用）
-      const ffasync = ['idle', 'tip'];
+      // 检查是否包含函数调用
+      const ffasync = ['idle(', 'tip(','moveCamera(false'];
       const isAsyncCall = ffasync.some(func => {
-        // 使用正则表达式检查是否是以函数名开头的调用
-        const regex = new RegExp(`^${func}\\(`);
+        // 使用正则表达式检查是否包含函数调用，更灵活的匹配方式
+        // 匹配函数名后跟括号的形式，允许前面有空格或其他字符
+        const regex = new RegExp(`\\b${func.replace('(', '\\s*\\(')}`);
         return regex.test(fragment[j].trim());
       });
       if(isAsyncCall){
@@ -575,8 +577,6 @@ async function tip(x, y, z, text, color, duration) {
   animate();
   
   // 5. 边框动画效果
-  // 等待0.5秒后开始边框动画
-  await idle(0.5);
   
   const animationDuration = 0.5; // 动画持续时间（秒）
   const startTime = Date.now();
@@ -675,4 +675,47 @@ async function tip(x, y, z, text, color, duration) {
   
   // 强制最终渲染更新
   renderer.render(scene, camera);
+}
+
+// 摄像机平滑移动函数
+function moveCamera(isAsync, x, y, z, duration = 2) {
+  // 获取当前摄像机位置
+  const startPos = camera.position.clone();
+  const targetPos = new THREE.Vector3(x, y, z);
+  
+  let startTime = null;
+  
+  // 创建 Promise，仅在 isAsync 为 false 时返回
+  const promise = new Promise(resolve => {
+    function animateCamera(timestamp) {
+      if (!startTime) startTime = timestamp;
+      const elapsed = (timestamp - startTime) / 1000; // 转换为秒
+      const progress = Math.min(elapsed / duration, 1); // 0到1的进度
+      const easedProgress = easeInOut(progress); // 应用缓动函数
+      
+      // 使用线性插值计算当前位置
+      const currentPos = new THREE.Vector3().lerpVectors(startPos, targetPos, easedProgress);
+      camera.position.copy(currentPos);
+      
+      // 确保摄像机始终朝向原点 (0,0,0)
+      camera.lookAt(0, 0, 0);
+      
+      // 渲染场景
+      renderer.render(scene, camera);
+      
+      // 如果动画未完成，继续更新
+      if (progress < 1) {
+        requestAnimationFrame(animateCamera);
+      } else if (!isAsync) {
+        // 动画完成且需要等待时，解析 Promise
+        resolve();
+      }
+    }
+    
+    // 开始摄像机动画
+    requestAnimationFrame(animateCamera);
+  });
+  
+  // 根据 isAsync 参数决定是否返回 Promise
+  return isAsync ? undefined : promise;
 }
