@@ -1,5 +1,5 @@
 const scene = new THREE.Scene();
-const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+const camera = new THREE.PerspectiveCamera(40, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ 
     antialias: true,
     alpha: true,
@@ -18,15 +18,7 @@ window.addEventListener('resize', () => {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
 });
-
-
-
-
-
-
-
-
-
+//场景设置
 
 
 
@@ -37,9 +29,9 @@ THREE.Cache.enabled = true;
 (async()=>{//等待THREE.LoadingManager加载完成
   const index = window.Process.loader.indexes;
   if(!index) return;
+  await loadTHREECSS2DRenderer();
   window.MCTextureMap = await loadFile('/ponder/'+index, 'json', true, `<span class="file-tag mr y">vanilla.js</span>=><span class="file-tag mr ml y">${index}</span>加载贴图映射文件`)
   startPreload();
-  // CreateBase(0) 已经在 startPreload 中调用
 })();
 // 定义 MCTextureLoader 类
 const MCTextureLoader = {
@@ -99,11 +91,14 @@ const MCTextureLoader = {
     return map;
   }
 }
-
+// 加载管理器
 const LoadingManager = new THREE.LoadingManager();
 const TextureLoader = new THREE.TextureLoader(LoadingManager);
+LoadingManager.onLoad = () => {//主要加载步骤
+  // 加载完成后，渲染 CSS2D 元素
+  console.log('renderCSS2D...');
+  window.CSS2DRenderer = new window.CSS2DRenderer(renderer);
 
-LoadingManager.onLoad = () => {
   console.log('所有资源加载完成');
   setTimeout(() => {
     loadingDiv.style.opacity = '0';
@@ -111,12 +106,11 @@ LoadingManager.onLoad = () => {
       loadingDiv.style.display = 'none';
       // 在 loadingDiv 完全隐藏后再执行 CreateBase 和 fragmentPlay.next
       if (texturesLoaded) {
-        CreateBase(0);
-        fragmentPlay.next(0);
+        CreateBase(defaultScene);
+        fragmentPlay.next(defaultFragment);
       }
     }, 1000);
   }, 1000);
-  //initGUI();
 };
 const {loadinfo:lmopli, rangeblock:lmoprb} = SNLB('lm-op', true);
 LoadingManager.onProgress = (url, itemsLoaded, itemsTotal) => {
@@ -185,9 +179,11 @@ function blockFallAnimation(obj, startY) {//方块下落动画
     if (!startTime) startTime = timestamp;
     const elapsed = (timestamp - startTime) / 1000;
     const progress = Math.min(elapsed * 2, 1);
+    // 应用缓动函数
+    const easedProgress = easeInOut(progress);
 
-    obj.position.y = THREE.MathUtils.lerp(startY+1, startY, progress);
-    obj.material.opacity = THREE.MathUtils.lerp(0, 1, progress);
+    obj.position.y = THREE.MathUtils.lerp(startY+1, startY, easedProgress);
+    obj.material.opacity = THREE.MathUtils.lerp(0, 1, easedProgress); 
 
     // 使用全局的 renderer 和 scene
     renderer.render(scene, camera);
@@ -198,7 +194,7 @@ function blockFallAnimation(obj, startY) {//方块下落动画
   }
   requestAnimationFrame(animate);
 }
-function CreateBase(sceneNum){
+function CreateBase(sceneNum){//创建CreateBase场景
   const createBase = window.Process.scenes[sceneNum].base.create;
   //main -style
   if(!createBase.style) return;
@@ -222,8 +218,13 @@ function CreateBase(sceneNum){
       break;
   }
 }
+// Ease in out 缓动函数
+function easeInOut(t) {
+  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+}
 
 //plugins end
+
 
 //解析流程
 const sceneTotal = window.Process.scenes.length;
@@ -244,9 +245,15 @@ function parseFragment(sceneNum){
     let command = '';
     const fragment = scene.fragment[i];
     for(let j = 0; j < fragment.length; j++){
-      // 检查是否包含 idle 函数调用
-      if(fragment[j].includes('idle(')){
-        // 将 idle 调用改为 await idle
+      // 检查是否以 idle 或 tip 开头（函数调用）
+      const ffasync = ['idle', 'tip'];
+      const isAsyncCall = ffasync.some(func => {
+        // 使用正则表达式检查是否是以函数名开头的调用
+        const regex = new RegExp(`^${func}\\(`);
+        return regex.test(fragment[j].trim());
+      });
+      if(isAsyncCall){
+        // 将 idle 或 tip 调用改为 await
         command += 'await ' + fragment[j] + ';\n';
       } else {
         command += fragment[j] + ';\n';
@@ -254,14 +261,14 @@ function parseFragment(sceneNum){
     }
     ffunctions += 'async function ponderFragment'+i+'(){\n'+command+'};\n';
   }
-  console.log(ffunctions);
   const script = document.createElement('script');
   script.id = 'ponderScene'+sceneNum;
   script.textContent = ffunctions;
   document.body.appendChild(script);
 }
+
 //片段切换
-let defaultScene = -1, defaultFragment = 0, fragmentCurrent = defaultFragment, sceneCurrent = defaultScene;
+let defaultScene = 0, defaultFragment = 0, fragmentCurrent = defaultFragment, sceneCurrent = defaultScene-1;
 const fragmentPlay = {
   async next(){
     fragmentCurrent++;
@@ -271,9 +278,9 @@ const fragmentPlay = {
       sceneCurrent++;
       parseFragment(sceneCurrent);
     }
-    console.log(fragmentCurrent+1,'/',fragmentTotal);
+    console.log('片段'+fragmentCurrent+1+'/'+fragmentTotal);
     if(fragmentCurrent < fragmentTotal){
-      console.log(`第${sceneCurrent}片段，执行ponderFragment${fragmentCurrent}函数`);
+      console.log(`第${sceneCurrent+1}片段，执行ponderFragment${fragmentCurrent}函数`);
       await window['ponderFragment'+fragmentCurrent]();
     }
   },
@@ -284,12 +291,21 @@ const fragmentPlay = {
       sceneCurrent--;
       parseFragment(sceneCurrent);
     }
-    console.log(fragmentCurrent+1,'/',fragmentTotal);
+    console.log('片段'+fragmentCurrent+1+'/'+fragmentTotal);
     if(fragmentCurrent < fragmentTotal){
-      console.log(`第${sceneCurrent}片段，执行ponderFragment${fragmentCurrent}函数`);
+      console.log(`第${sceneCurrent+1}片段，执行ponderFragment${fragmentCurrent}函数`);
       await window['ponderFragment'+fragmentCurrent]();
     }
   }
+}
+
+// idle 函数：等待指定秒数
+function idle(seconds) {
+  return new Promise(resolve => {
+    setTimeout(() => {
+      resolve();
+    }, seconds * 1000);
+  });
 }
 
 //setblock
@@ -327,16 +343,6 @@ function setblock(block, x, y, z){
   
   renderer.render(scene, camera);// 强制渲染更新
 }
-
-// idle 函数：等待指定秒数
-function idle(seconds) {
-  return new Promise(resolve => {
-    setTimeout(() => {
-      resolve();
-    }, seconds * 1000);
-  });
-}
-
 // setblockfall 函数：放置方块并添加下落动画
 function setblockfall(block, x, y, z) {
   const texture = MCTextureLoader.load(block);
@@ -374,4 +380,299 @@ function setblockfall(block, x, y, z) {
   blockFallAnimation(blockObj, y);
   
   renderer.render(scene, camera); // 强制渲染更新
+}
+
+//fill填充
+function fill(block, x1, y1, z1, x2, y2, z2){
+  for(let x = x1; x <= x2; x++){
+    for(let y = y1; y <= y2; y++){
+      for(let z = z1; z <= z2; z++){
+        setblock(block, x, y, z);
+      }
+    }
+  }
+}
+//fillfall填充
+function fillfall(block, x1, y1, z1, x2, y2, z2){
+  for(let x = x1; x <= x2; x++){
+    for(let y = y1; y <= y2; y++){
+      for(let z = z1; z <= z2; z++){
+        setblockfall(block, x, y, z);
+      }
+    }
+  }
+}
+
+// tip函数：在指定位置显示提示信息
+async function tip(x, y, z, text, color, duration) {
+  // 1. 创建正方体轮廓（使用TubeGeometry创建可调整粗细的边框）
+  const cubeSize = 1.05; // 略大于1，确保轮廓包围方块
+  
+  // 创建正方体的顶点
+  const vertices = [
+    // 前面
+    new THREE.Vector3(-cubeSize/2, -cubeSize/2, cubeSize/2),
+    new THREE.Vector3(cubeSize/2, -cubeSize/2, cubeSize/2),
+    new THREE.Vector3(cubeSize/2, cubeSize/2, cubeSize/2),
+    new THREE.Vector3(-cubeSize/2, cubeSize/2, cubeSize/2),
+    // 后面
+    new THREE.Vector3(-cubeSize/2, -cubeSize/2, -cubeSize/2),
+    new THREE.Vector3(cubeSize/2, -cubeSize/2, -cubeSize/2),
+    new THREE.Vector3(cubeSize/2, cubeSize/2, -cubeSize/2),
+    new THREE.Vector3(-cubeSize/2, cubeSize/2, -cubeSize/2)
+  ];
+  
+  // 创建边框线条组
+  const cubeOutline = new THREE.Group();
+  const tubeRadius = 0.03; // 调整这个值来改变边框粗细
+  const radialSegments = 6; // 圆形截面的分段数，值越大越圆
+  
+  // 存储所有边框部件，用于动画
+  const edges = [];
+  
+  // 创建底面四条边（固定不动）
+  const bottomEdges = [
+    [vertices[4], vertices[5]], // 后面底边
+    [vertices[5], vertices[1]], // 右面底边
+    [vertices[1], vertices[0]], // 前面底边
+    [vertices[0], vertices[4]]  // 左面底边
+  ];
+  
+  bottomEdges.forEach(edge => {
+    const curve = new THREE.LineCurve3(edge[0], edge[1]);
+    const tubeGeometry = new THREE.TubeGeometry(curve, 1, tubeRadius, radialSegments, false);
+    const tubeMaterial = new THREE.MeshBasicMaterial({ 
+      color: color || 'red',
+      transparent: true,
+      opacity: 0.9
+    });
+    const tubeMesh = new THREE.Mesh(tubeGeometry, tubeMaterial);
+    cubeOutline.add(tubeMesh);
+    edges.push(tubeMesh);
+  });
+  
+  // 创建顶面四条边（初始位置在底面）
+  const topEdges = [
+    [vertices[6], vertices[7]], // 后面顶边
+    [vertices[7], vertices[3]], // 左面顶边
+    [vertices[3], vertices[2]], // 前面顶边
+    [vertices[2], vertices[6]]  // 右面顶边
+  ];
+  
+  const topEdgeMeshes = [];
+  topEdges.forEach(edge => {
+    // 初始位置在底面
+    const startPoint = new THREE.Vector3(edge[0].x, -cubeSize/2, edge[0].z);
+    const endPoint = new THREE.Vector3(edge[1].x, -cubeSize/2, edge[1].z);
+    const curve = new THREE.LineCurve3(startPoint, endPoint);
+    const tubeGeometry = new THREE.TubeGeometry(curve, 1, tubeRadius, radialSegments, false);
+    const tubeMaterial = new THREE.MeshBasicMaterial({ 
+      color: color || 'red',
+      transparent: true,
+      opacity: 0.9
+    });
+    const tubeMesh = new THREE.Mesh(tubeGeometry, tubeMaterial);
+    cubeOutline.add(tubeMesh);
+    edges.push(tubeMesh);
+    topEdgeMeshes.push({
+      mesh: tubeMesh,
+      startPos: startPoint,
+      endPos: endPoint,
+      targetStartPos: edge[0],
+      targetEndPos: edge[1]
+    });
+  });
+  
+  // 创建四条高（棱）（初始高度为0）
+  const verticalEdges = [
+    { start: vertices[4], end: vertices[6] }, // 后面左棱
+    { start: vertices[5], end: vertices[2] }, // 右面后棱
+    { start: vertices[1], end: vertices[3] }, // 前面右棱
+    { start: vertices[0], end: vertices[7] }  // 左面前棱
+  ];
+  
+  const verticalEdgeMeshes = [];
+  verticalEdges.forEach(edge => {
+    // 初始高度为0，即起点和终点相同
+    const startPoint = edge.start.clone();
+    const endPoint = edge.start.clone(); // 初始时终点与起点相同
+    const curve = new THREE.LineCurve3(startPoint, endPoint);
+    const tubeGeometry = new THREE.TubeGeometry(curve, 1, tubeRadius, radialSegments, false);
+    const tubeMaterial = new THREE.MeshBasicMaterial({ 
+      color: color || 'red',
+      transparent: true,
+      opacity: 0.8
+    });
+    const tubeMesh = new THREE.Mesh(tubeGeometry, tubeMaterial);
+    cubeOutline.add(tubeMesh);
+    edges.push(tubeMesh);
+    verticalEdgeMeshes.push({
+      mesh: tubeMesh,
+      startPos: startPoint,
+      endPos: endPoint,
+      targetEndPos: edge.end
+    });
+  });
+  
+  cubeOutline.position.set(x, y, z);
+  scene.add(cubeOutline);
+  
+  // 2. 创建2D HTML内容
+  const tipElement = document.createElement('div');
+  tipElement.className = 'ponder-tip';
+  tipElement.innerHTML = text;
+  
+  // 创建进度条容器
+  const progressBarContainer = document.createElement('div');
+  progressBarContainer.className = 'ponder-progress-container';
+  
+  // 创建进度条
+  const progressBar = document.createElement('div');
+  progressBar.className = 'ponder-progress-bar';
+  
+  // 将进度条添加到容器
+  progressBarContainer.appendChild(progressBar);
+  tipElement.appendChild(progressBarContainer);
+  
+  document.body.appendChild(tipElement);
+  
+  // 3. 创建一个虚拟的3D对象来获取方块在屏幕上的位置
+  const blockPosition = new THREE.Vector3(x, y + 0.7, z); // 稍微上移，避免与方块重叠
+  
+  // 4. 更新文本框位置的函数
+  function updateTipPosition() {
+    // 将3D坐标投影到2D屏幕坐标
+    const vector = blockPosition.clone().project(camera);
+    
+    // 转换为屏幕坐标
+    const xPercent = (vector.x * 0.5 + 0.5) * window.innerWidth;
+    const yPercent = (-vector.y * 0.5 + 0.5) * window.innerHeight;
+    
+    // 设置文本框位置，向右偏移20像素
+    tipElement.style.left = (xPercent + 20) + 'px';
+    tipElement.style.top = yPercent + 'px';
+    
+    // 检查方块是否在相机视野内
+    const inView = vector.z < 1;
+    tipElement.style.display = inView ? 'block' : 'none';
+    
+    // 强制渲染更新，确保轮廓可见
+    renderer.render(scene, camera);
+  }
+  
+  // 初始更新位置
+  updateTipPosition();
+  
+  // 添加窗口大小变化监听器
+  window.addEventListener('resize', updateTipPosition);
+  
+  // 添加渲染循环监听器，持续更新位置
+  let animationFrameId;
+  function animate() {
+    updateTipPosition();
+    animationFrameId = requestAnimationFrame(animate);
+  }
+  animate();
+  
+  // 5. 边框动画效果
+  // 等待0.5秒后开始边框动画
+  await idle(0.5);
+  
+  const animationDuration = 0.5; // 动画持续时间（秒）
+  const startTime = Date.now();
+    
+  function updateOutlineAnimation() {
+    const elapsed = (Date.now() - startTime) / 1000; // 转换为秒
+    const rawProgress = Math.min(elapsed / animationDuration, 1); // 0到1的原始进度
+    const progress = easeInOut(rawProgress); // 应用缓动函数
+    
+    // 更新顶面位置
+    topEdgeMeshes.forEach(edgeObj => {
+      // 计算当前顶面位置（从底面上升到顶面）
+      const currentY = -cubeSize/2 + (cubeSize * progress);
+      
+      const currentStartPos = new THREE.Vector3(
+        edgeObj.targetStartPos.x,
+        currentY,
+        edgeObj.targetStartPos.z
+      );
+      
+      const currentEndPos = new THREE.Vector3(
+        edgeObj.targetEndPos.x,
+        currentY,
+        edgeObj.targetEndPos.z
+      );
+      
+      // 更新几何体
+      const curve = new THREE.LineCurve3(currentStartPos, currentEndPos);
+      edgeObj.mesh.geometry.dispose(); // 释放旧几何体
+      edgeObj.mesh.geometry = new THREE.TubeGeometry(curve, 1, tubeRadius, radialSegments, false);
+    });
+    
+    // 更新四条棱的高度
+    verticalEdgeMeshes.forEach(edgeObj => {
+      // 计算当前棱的终点位置（从底面上升到顶面）
+      const currentEndY = edgeObj.startPos.y + (cubeSize * progress);
+      
+      const currentEndPos = new THREE.Vector3(
+        edgeObj.startPos.x,
+        currentEndY,
+        edgeObj.startPos.z
+      );
+      
+      // 更新几何体
+      const curve = new THREE.LineCurve3(edgeObj.startPos, currentEndPos);
+      edgeObj.mesh.geometry.dispose(); // 释放旧几何体
+      edgeObj.mesh.geometry = new THREE.TubeGeometry(curve, 1, tubeRadius, radialSegments, false);
+    });
+    
+    // 强制渲染更新
+    renderer.render(scene, camera);
+    
+    // 如果动画未完成，继续更新
+    if (rawProgress < 1) {
+      requestAnimationFrame(updateOutlineAnimation);
+    }
+  }
+  
+  // 开始边框动画
+  updateOutlineAnimation();
+  
+  // 6. 文本动画效果
+  // 等待边框动画完成后，使HTML内容浮现
+  await idle(animationDuration);
+  tipElement.style.opacity = '1';
+  
+  // 立即启动进度条动画
+  progressBar.style.transition = `width ${duration}s linear`;
+  requestAnimationFrame(() => {
+    progressBar.style.width = '100%'; // 进度条从0%过渡到100%
+  });
+  
+  // 等待指定秒数
+  await idle(duration);
+  
+  // 在0.5秒内将HTML内容的透明度平滑过渡至0
+  tipElement.style.opacity = '0';
+  
+  // 等待0.5秒让淡出动画完成
+  await idle(0.5);
+  
+  // 7. 清理
+  // 移除元素
+  scene.remove(cubeOutline);
+  document.body.removeChild(tipElement);
+  
+  // 释放几何体内存
+  edges.forEach(edge => {
+    edge.geometry.dispose();
+    edge.material.dispose();
+  });
+  
+  // 移除事件监听器和动画循环
+  window.removeEventListener('resize', updateTipPosition);
+  cancelAnimationFrame(animationFrameId);
+  
+  // 强制最终渲染更新
+  renderer.render(scene, camera);
 }

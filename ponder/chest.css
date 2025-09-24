@@ -18,13 +18,32 @@ font-size: 18px;
 #chest-grid {
 width: 100%;
 height: calc(100% - 25px);
-background-color: #d8d8d8;
+background-color: #c9c9c9;
 }
 #chest-grid td {
 width: 11%; /* 9列等宽 */
 height: 16.6%; /* 6行等高 */
-border: 2px solid #676767; /* 内边框为深灰色 */
-background-color: #8b8b8b; /* 边框内部背景为灰色 */
+border: 2px solid;
+border-color: #373737 #FFF #FFF #373737; /* 内边框为深灰色 */
+background: #a5a5a5 no-repeat center center / 32px 32px; /* 边框内部背景为灰色 */
+box-sizing: content-box;
+position: relative;
+}
+#chest-grid td::before{
+  bottom: -2px;
+  left: -2px;
+}
+#chest-grid td::after {
+  top: -2px;
+  right: -2px;
+}
+#chest-grid td::before, #chest-grid td::after {
+  content: "";
+  position: absolute;
+  background-color: #8B8B8B;
+  height: 2px;
+  width: 2px;
+  pointer-events: none;
 }
 #chest-grid td:hover {
 background-color: #a0a0a0;
