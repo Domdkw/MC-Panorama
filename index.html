@@ -47,6 +47,14 @@
       margin-bottom: 1rem;
     }
   </style>
+  <script type="importmap">
+      {
+          "imports": {
+              "three": "https://jsd.onmicrosoft.cn/npm/three@0.174.0/build/three.module.min.js",
+              "three/addons/": "https://jsd.onmicrosoft.cn/npm/three@0.174.0/examples/jsm/"
+          }
+      }
+  </script>
 </head>
 <body>
   <section class="load abso"><img class="bugjump" src="./assets/page/bugjump.png" alt="BUGJUMP"></img></section>
@@ -294,7 +302,7 @@
       loadFile('page.js', 'js', true, '加载必要界面脚本<span class="file-tag y ml">page.js</span>')
       const {loadstate, loadinfo, rangeblock} = SNLB('three', true);
       loadinfo.innerHTML = 'Loading the <span class="file-tag y">three@0.174.0.js</span> module...';
-      const module = await import('https://jsd.onmicrosoft.cn/npm/three@0.174.0/build/three.module.min.js');
+      const module = await import('three');
       try {
         window.THREE = module;
         loadinfo.innerHTML = 'The <span class="file-tag y">three@0.174.0.js</span> module is loaded successfully!';

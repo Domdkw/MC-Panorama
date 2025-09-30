@@ -1,13 +1,6 @@
-<script type="importmap">
-    {
-        "imports": {
-            "three": "https://jsd.onmicrosoft.cn/npm/three@0.174.0/build/three.module.min.js"
-        }
-    }
-</script>
 <style>
     /* 提示文本框样式 */
-    .ponder-tip {
+    .ponder-tip-progress {
         position: absolute;
         color: #FFFFFF;
         background-color: rgba(0, 0, 0, 0.7);
@@ -23,7 +16,7 @@
     }
     
     /* 进度条容器样式 */
-    .ponder-progress-container {
+    .ponder-tip-progress-container {
         position: absolute;
         bottom: 0;
         left: 0;
@@ -36,7 +29,7 @@
     }
     
     /* 进度条样式 */
-    .ponder-progress-bar {
+    .ponder-tip-progress-bar {
         position: absolute;
         top: 0;
         left: 0;
@@ -60,7 +53,7 @@
       
       try {
         // Load the CSS2DRenderer module
-        const module = await import('https://jsd.onmicrosoft.cn/npm/three@0.174.0/examples/jsm/renderers/CSS2DRenderer.min.js');
+        const module = await import('three/addons/renderers/CSS2DRenderer.min.js');
         window.CSS2DRenderer = module.CSS2DRenderer;
         window.CSS2DObject = module.CSS2DObject;
         
