@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create:Ponder</title>
-  <style>body{margin: 0;} canvas{position: absolute;display: block;filter: contrast(1.6);z-index: -1;}</style>
+  <style>body{margin: 0;} canvas{position: absolute;display: block;filter: contrast(1.6);}</style>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="./assets/page/Dragon_Head_JE1_BE1.png">
   <style>
@@ -80,8 +80,8 @@
             </div>
             <input type="range" id="volume_slider" min="0" max="1" step="0.01" value="0">
           </div>
-          <button id="lang_btn" title="language语言" class="outside-btn" onclick="showlang()"><img class="pixelated" src="./assets/page/icon/language.png" alt="lang-ico"></button>
-          <button id="report_btn" title="report报告" class="outside-btn" onclick="cd('https\:\/\/github.com/Domdkw/MC-Panorama/issues', 'GitHub访问链接，中国大陆用户可以通过访问https\:\/\/gitee.com/Domdkw/MC-Panorama/issues来报告问题')"><img class="pixelated" src="./assets/page/dialog/warning_button.png" alt="report-ico"></button>
+          <button id="lang_btn" title="language语言" class="outside-btn" onclick="showlang()"><img src="./assets/page/icon/language.png" alt="lang-ico"></button>
+          <button id="report_btn" title="report报告" class="outside-btn" onclick="cd('https\:\/\/github.com/Domdkw/MC-Panorama/issues', 'GitHub访问链接，中国大陆用户可以通过访问https\:\/\/gitee.com/Domdkw/MC-Panorama/issues来报告问题')"><img src="./assets/page/dialog/warning_button.png" alt="report-ico"></button>
         </div>
       </div>
     </main>
@@ -239,50 +239,101 @@
     }
     function loadFile(url, type, range, title=`Loading ${url}...`){
       return new Promise((resolve, reject) => {
-      const {loadstate, loadinfo, rangeblock} = SNLB(url, range);
-      loadinfo.innerHTML = title;
-      const xhr = new XMLHttpRequest();
-      xhr.open('GET', url, true);
-      xhr.setRequestHeader('Accept', 'text/plain');
-      xhr.responseType = 'text';
-      xhr.onprogress = (e) => {
-        if (rangeblock) {
-          rangeblock.style.width = `${(e.loaded / e.total) * 100}%`;
-        }
-      }
-      xhr.onload = () => {
-        if (xhr.readyState === 4) {
-          loadstate.style.backgroundColor = '#fff6';
-          rangeblock.style.width = '100%';
-          let data;
-          switch (type) {
-          case 'js':
-            const e = eval;
-            e(xhr.responseText);
-            data = undefined;
-            break;
-          case 'css':
-            const style = document.createElement('style');
-            style.textContent = xhr.responseText;
-            body.appendChild(style);
-            data = undefined;
-            break;
-          case 'json':
-            data = JSON.parse(xhr.responseText);
-            break;
-          default:
-            data = xhr.responseText;
-            break;
+        try {
+          const {loadstate, loadinfo, rangeblock} = SNLB(url, range);
+          loadinfo.innerHTML = title;
+          const xhr = new XMLHttpRequest();
+          xhr.open('GET', url, true);
+          xhr.setRequestHeader('Accept', 'text/plain');
+          xhr.responseType = 'text';
+          
+          xhr.onprogress = (e) => {
+            if (rangeblock && e.lengthComputable) {
+              rangeblock.style.width = `${(e.loaded / e.total) * 100}%`;
+            }
           }
-          resolve(data);
-        }else{
-          loadinfo.textContent = `Failed to load ${url}!`;
+          
+          xhr.onload = () => {
+            if (xhr.readyState === 4 && xhr.status === 200) {
+              loadstate.style.backgroundColor = '#fff6';
+              if (rangeblock) rangeblock.style.width = '100%';
+              
+              let data;
+              switch (type) {
+                case 'js':
+                  // 使用Blob对象加载并执行JavaScript
+                  const jsBlob = new Blob([xhr.responseText], { type: 'application/javascript' });
+                  const jsUrl = URL.createObjectURL(jsBlob);
+                  const script = document.createElement('script');
+                  script.src = jsUrl;
+                  script.onload = function() {
+                    URL.revokeObjectURL(jsUrl); // 释放Blob URL
+                    data = undefined;
+                    resolve(data);
+                  };
+                  script.onerror = function() {
+                    URL.revokeObjectURL(jsUrl); // 释放Blob URL
+                    loadinfo.textContent = `Failed to execute ${url}!`;
+                    reject(new Error(`Failed to execute ${url}`));
+                  };
+                  document.body.appendChild(script);
+                  return; // 不立即resolve，等待脚本加载完成
+                  
+                case 'css':
+                  // 使用Blob对象加载并应用CSS
+                  const cssBlob = new Blob([xhr.responseText], { type: 'text/css' });
+                  const cssUrl = URL.createObjectURL(cssBlob);
+                  const link = document.createElement('link');
+                  link.rel = 'stylesheet';
+                  link.href = cssUrl;
+                  link.onload = function() {
+                    URL.revokeObjectURL(cssUrl); // 释放Blob URL
+                    data = undefined;
+                    resolve(data);
+                  };
+                  link.onerror = function() {
+                    URL.revokeObjectURL(cssUrl); // 释放Blob URL
+                    loadinfo.textContent = `Failed to load CSS ${url}!`;
+                    reject(new Error(`Failed to load CSS ${url}`));
+                  };
+                  document.head.appendChild(link);
+                  return; // 不立即resolve，等待CSS加载完成
+                  
+                case 'json':
+                  try {
+                    data = JSON.parse(xhr.responseText);
+                  } catch (jsonError) {
+                    loadinfo.textContent = `Failed to parse JSON from ${url}!`;
+                    reject(new Error(`Failed to parse JSON from ${url}: ${jsonError.message}`));
+                    return;
+                  }
+                  break;
+                  
+                default:
+                  data = xhr.responseText;
+                  break;
+              }
+              resolve(data);
+            } else {
+              loadinfo.textContent = `Failed to load ${url}! Status: ${xhr.status}`;
+              reject(new Error(`Failed to load ${url}. Status: ${xhr.status}`));
+            }
+          }
+          
+          xhr.onerror = () => {
+            loadinfo.textContent = `Failed to load ${url}! Network error`;
+            reject(new Error(`Network error while loading ${url}`));
+          }
+          
+          xhr.ontimeout = () => {
+            loadinfo.textContent = `Failed to load ${url}! Request timeout`;
+            reject(new Error(`Request timeout while loading ${url}`));
+          }
+          
+          xhr.send();
+        } catch (error) {
+          reject(new Error(`Unexpected error in loadFile: ${error.message}`));
         }
-      }
-      xhr.onerror = () => {
-        loadinfo.textContent = `Failed to load ${url}!`;
-      }
-      xhr.send();
       });
     }
     let sound_enable = false;

@@ -268,6 +268,7 @@ function FSS(jsonData){//refreshServer.fetchServerState刷新服务器状态
       const sv_description = serverElement.querySelector('.sv-description');
       //const sv_item_state = serverElement.querySelector('.sv-item-state');
       if (player_stateElement) {
+        let type = 'unreachable';
         let online_players = '?';
         let max_players = '?';
         if(jsonData[serverUrl].max_players){
@@ -278,9 +279,7 @@ function FSS(jsonData){//refreshServer.fetchServerState刷新服务器状态
           player_stateElement.innerHTML = '无法获取数据';
           player_stateElement.style.fontSize = '12px';
           player_stateElement.style.color = '#fff9';
-          const img = document.createElement('img');
-          img.src = './assets/page/sverror.svg';
-          img.classList.add('sv-item-sp');
+          type = 'unreachable';
         }
       }
       if(sv_description){
@@ -288,11 +287,12 @@ function FSS(jsonData){//refreshServer.fetchServerState刷新服务器状态
           sv_description.textContent = jsonData[serverUrl].description.text;
         }else if(jsonData[serverUrl].error){
           sv_description.textContent = jsonData[serverUrl].error;
-          const img = document.createElement('img');
-          img.src = './assets/page/sverror.svg';
-          img.classList.add('sv-item-sp');
+          type = 'unreachable';
         }
       }
+      const div = document.createElement('div');
+      div.classList.add('sv-item-sp', type);
+      player_stateElement.appendChild(div);      
     }
   });
 }

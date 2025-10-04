@@ -115,6 +115,7 @@ function loadMcPanorama() {
   // 移除 LinearToneMapping，它会覆盖 ACESFilmicToneMapping
   // renderer.toneMapping = THREE.LinearToneMapping;
   renderer.gammaOutput = false;
+  renderer.domElement.style.zIndex = '-1'; // 设置低于前景画布的z-index
   window.addEventListener('resize', onWindowResize, false);
 
   function onWindowResize() {

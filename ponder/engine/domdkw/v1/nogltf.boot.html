@@ -47,23 +47,27 @@
     }
 </script>
 <script>
-    async function loadTHREECSS2DRenderer() {
-      const {loadstate, loadinfo, rangeblock} = SNLB('CSS2DRenderer', true);
-      loadinfo.innerHTML = 'Loading the <span class="file-tag y">CSS2DRenderer</span> module...';
-      
-      try {
-        // Load the CSS2DRenderer module
-        const module = await import('three/addons/renderers/CSS2DRenderer.min.js');
-        window.CSS2DRenderer = module.CSS2DRenderer;
-        window.CSS2DObject = module.CSS2DObject;
+    function loadTHREECSS2DRenderer() {
+      return new Promise(async (resolve, reject) => {
+        const {loadstate, loadinfo, rangeblock} = SNLB('CSS2DRenderer', true);
+        loadinfo.innerHTML = 'Loading the <span class="file-tag y">CSS2DRenderer</span> module...';
         
-        loadinfo.innerHTML = 'The <span class="file-tag y">CSS2DRenderer</span> module is loaded successfully!';
-        rangeblock.style.width = '100%';
-        loadstate.style.backgroundColor = '#fff6';
-      }catch (e) {
-        loadinfo.textContent = 'Failed to load the CSS2DRenderer module!';
-        rangeblock.style.width = '0%';
-        console.error(e);
-      }
+        try {
+          // Load the CSS2DRenderer module
+          const module = await import('three/addons/renderers/CSS2DRenderer.min.js');
+          window.CSS2DRenderer = module.CSS2DRenderer;
+          window.CSS2DObject = module.CSS2DObject;
+          
+          loadinfo.innerHTML = 'The <span class="file-tag y">CSS2DRenderer</span> module is loaded successfully!';
+          rangeblock.style.width = '100%';
+          loadstate.style.backgroundColor = '#fff6';
+          resolve(module);
+        }catch (e) {
+          loadinfo.textContent = 'Failed to load the CSS2DRenderer module!';
+          rangeblock.style.width = '0%';
+          console.error(e);
+          reject(e);
+        }
+      });
     }
 </script>
