@@ -5,7 +5,7 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Create:Ponder</title>
-  <style>body{margin: 0;} canvas{position: absolute;display: block;filter: contrast(1.6);}</style>
+  <style>body{margin: 0;} canvas{position: fixed;filter: contrast(1.6);}</style>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="./assets/page/Dragon_Head_JE1_BE1.png">
   <style>
@@ -183,7 +183,8 @@
               <button class="sti-LS-info-btn tab canClick" onclick="options.btn.cleanAllLS()">清除所有LocalStorage</button>
             </div>
             <hr>
-            <div id="service-provider" style="display:flex;justify-content:space-evenly;align-items:center;height:10rem;">
+            <style>#service-provider>*{margin:2rem}</style>
+            <div id="service-provider" style="display:flex;flex-wrap:wrap;justify-content:space-evenly;align-items:center;min-height:10rem;">
               <button onclick="document.getElementById('service-provider').innerHTML=service_provider">服务提供商</button>
             </div>
           </div>
@@ -346,7 +347,7 @@
       script.src = './playsound.js';
       document.body.appendChild(script);
     })
-    const service_provider = '<a href="https://www.netlify.com"><img src="https://www.netlify.com/assets/badges/netlify-badge-color-accent.svg" alt="Deploys by Netlify" /></a><a class="badge" href="https://www.jsdelivr.com/package/npm/three" title="jsDelivr monthly hits"><img alt="jsDelivr 每月点击徽章" src="https://data.jsdelivr.com/v1/package/npm/three/badge"></a><a class="main-logo" href="https://www.jsdelivr.com" title="jsDelivr"><img width="140" height="34" title="jsDelivr" src="https://www.jsdelivr.com/assets/f14dc4533f22bdb854b88e243bdbaa447249ae7a/img/jsdelivr-horizontal-regular.svg"></a>';
+    const service_provider = '<a href="https://www.netlify.com"><img src="https://www.netlify.com/assets/badges/netlify-badge-color-accent.svg" alt="Deploys by Netlify" /></a><a class="badge" href="https://www.jsdelivr.com/package/npm/three" title="jsDelivr monthly hits"><img alt="jsDelivr 每月点击徽章" src="https://data.jsdelivr.com/v1/package/npm/three/badge"></a><a class="main-logo" href="https://www.jsdelivr.com" title="jsDelivr"><img width="140" height="34" title="jsDelivr" src="https://www.jsdelivr.com/assets/f14dc4533f22bdb854b88e243bdbaa447249ae7a/img/jsdelivr-horizontal-regular.svg"></a><br><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/t/Domdkw/MC-Panorama"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/Domdkw/MC-Panorama"><img alt="GitHub License" src="https://img.shields.io/github/license/Domdkw/MC-Panorama">';
   </script>
   <script type="module">
     async function loadTHREE() {

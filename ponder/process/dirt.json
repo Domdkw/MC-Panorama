@@ -14,7 +14,6 @@
   "boot":{
     "html":"/ponder/engine/domdkw/v1/nogltf.boot.html"
   },
-  "threePlugins":"none",
   "block":[
     "minecraft:dirt",
     "minecraft:mossy_stone_bricks",

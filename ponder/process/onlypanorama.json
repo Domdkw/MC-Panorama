@@ -1,0 +1,7 @@
+{
+"loader":{
+  "boot":{
+    "js":"/ponder/engine/domdkw/onlypanorama.boot.js"
+  }
+}
+}

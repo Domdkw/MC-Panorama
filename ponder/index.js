@@ -1,6 +1,8 @@
 //2025.8.12 从/index.html抽离
 //此脚本用于构建HTML、拉取JS文件和处理物品数据
 
+// terminal
+document.getElementById('terminal').style.zIndex = 4;
 //添加表格
 const CreatePage = document.createElement('section');
 CreatePage.id = 'create-page';
@@ -164,53 +166,61 @@ async function ponderApiLoad() {
   //加载Process文件，调用/index-loadFile函数，读取文件内容得到ponderAPI地址
   window.Process = await loadFile( processURL, 'json', true, '加载思索流程<span class="file-tag y ml">'+processURL+'</span>');
   //获取boot
-  if(Process.loader.boot.html){
-    fetch(Process.loader.boot.html)
-      .then(response => response.text())
-      .then(html => {
-        try {
-          // 创建一个临时容器元素
-          const tempContainer = document.createElement('div');
-          // 将获取到的HTML内容设置为临时容器的innerHTML
-          tempContainer.innerHTML = html;
-          
-          // 处理临时容器中的所有子元素
-          const children = Array.from(tempContainer.children);
-          let hasNonScriptElements = false;
-          let sectionContainer = null;
-          
-          children.forEach(child => {
-            if (child.tagName === 'SCRIPT') {
-              // 如果是script标签，直接添加到body中执行
-              const script = document.createElement('script');
-              if (child.src) {
-                script.src = child.src;
-              } else {
-                script.textContent = child.textContent;
-              }
-              if (child.type) script.type = child.type;
-              if (child.async) script.async = child.async;
-              if (child.defer) script.defer = child.defer;
-              document.body.appendChild(script);
+  if (Process.loader.boot.html) {
+    loadFile(Process.loader.boot.html, 'html', true, '加载boot.html<span class="file-tag y ml">'+Process.loader.boot.html+'</span>')
+    .then(html => {
+      try {
+        // 创建一个临时容器元素
+        const tempContainer = document.createElement('div');
+        // 将获取到的HTML内容设置为临时容器的innerHTML
+        tempContainer.innerHTML = html;
+        
+        // 处理临时容器中的所有子元素
+        const children = Array.from(tempContainer.children);
+        let hasNonScriptElements = false;
+        let sectionContainer = null;
+        
+        children.forEach(child => {
+          if (child.tagName === 'SCRIPT') {
+            // 如果是script标签，直接添加到body中执行
+            const script = document.createElement('script');
+            if (child.src) {
+              script.src = child.src;
             } else {
-              // 对于非script标签，创建section容器
-              if (!hasNonScriptElements) {
-                hasNonScriptElements = true;
-                sectionContainer = document.createElement('section');
-                sectionContainer.className = 'boot-html-container';
-                document.body.appendChild(sectionContainer);
-              }
-              sectionContainer.appendChild(child.cloneNode(true));
+              script.textContent = child.textContent;
             }
-          });
-          
-          sf('boot.html内容已按规则处理并添加到body');
-        } catch (error) {
-          console.error('Failed to process boot HTML content:', error);
-        }
-      })
-      .catch(error => {
-        console.error('Failed to load boot HTML:', error);
-      });
+            if (child.type) script.type = child.type;
+            if (child.async) script.async = child.async;
+            if (child.defer) script.defer = child.defer;
+            document.body.appendChild(script);
+          } else {
+            // 对于非script标签，创建section容器
+            if (!hasNonScriptElements) {
+              hasNonScriptElements = true;
+              sectionContainer = document.createElement('section');
+              sectionContainer.className = 'boot-html-container';
+              document.body.appendChild(sectionContainer);
+            }
+            sectionContainer.appendChild(child.cloneNode(true));
+          }
+        });
+        
+        sf('boot.html内容已按规则处理并添加到body');
+      } catch (error) {
+        console.error('Failed to process boot HTML content:', error);
+      }
+    })
+    .catch(error => {
+      console.error('Failed to load boot HTML:', error);
+    });
+  } else if (Process.loader.boot.js) {
+    loadFile(Process.loader.boot.js, 'js', true, '加载boot.js<span class="file-tag y ml">'+Process.loader.boot.js+'</span>')
+    .catch(error => {
+      console.error('Failed to load boot.js:', error);
+    });
+  } else {
+    console.error('未知的boot类型且缺少js或html配置:', Process.loader.boot);
+    sf('未知的boot类型且缺少js或html配置: ' + JSON.stringify(Process.loader.boot));
+    return;
   }
 }

@@ -552,7 +552,6 @@ main .outside-btn{
 }
 
 #create-page{
-  z-index: 5;
   display: flex;
   align-items: center;
 }

@@ -1,5 +1,10 @@
 [
     {
+        "name":"onlypanorama",
+        "icon":"/ponder/minecraft/item/barrier.png",
+        "process":"/ponder/process/onlypanorama.json"
+    },
+    {
         "name":"dirt",
         "icon":"/ponder/minecraft/item/block/dirt.png",
         "process":"/ponder/process/dirt.json"
