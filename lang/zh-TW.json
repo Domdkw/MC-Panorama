@@ -10,5 +10,7 @@
   "cd_text_info": "這會導向一個網頁鏈接，無法確定其安全性，是否重定向？",
   "openurl": "打開",
   "urlcopy": "已複製到剪貼板",
-  "urlcancel": "取消"
+  "urlcancel": "取消",
+  "audio_file_label": "指定背景音樂",
+  "audio_file_remind": "（隨機選擇時請保持隨機選項選中）"
 }

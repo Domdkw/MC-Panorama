@@ -10,5 +10,7 @@
   "cd_text_info": "这指向一个网页链接，不能确定其安全性，是否进行跳转？",
   "openurl": "打开此网站",
   "urlcopy": "复制到剪贴板",
-  "urlcancel": "取消"
+  "urlcancel": "取消",
+  "audio_file_label": "指定背景音乐",
+  "audio_file_remind": "（随机选择时请保持随机选项选中）"
 }

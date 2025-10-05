@@ -4,11 +4,37 @@ const volumeSlider = document.getElementById('volume_slider');
 const audioFiles = [
   "Mutation.mp3",
   "Beginning_2.mp3",
-  "Floating_trees.mp3"
+  "Floating_trees.mp3",
+  "Crescent Dunes - Aaron Cherof&Minecraft.mp3",
+  "Infinite Amethyst - Lena Raine、Minecraft.mp3"
 ];
 
-const randomIndex = Math.floor(Math.random() * audioFiles.length);
-const selectedAudioFile = audioFiles[randomIndex];
+// 从localStorage获取选定的音频文件设置
+const stiData = localStorage.getItem('sti');
+let audioSetting = 'random';
+
+if (stiData) {
+  try {
+    const parsedData = JSON.parse(stiData);
+    const audioConfig = parsedData.find(item => item.id === 'sti-audio-file');
+    if (audioConfig) {
+      audioSetting = audioConfig.value;
+    }
+  } catch (e) {
+    console.error('解析localStorage.sti失败:', e);
+  }
+}
+
+let selectedAudioFile;
+if (audioSetting === 'random') {
+  // 随机选择音频文件
+  const randomIndex = Math.floor(Math.random() * audioFiles.length);
+  selectedAudioFile = audioFiles[randomIndex];
+} else {
+  // 使用指定的音频文件
+  selectedAudioFile = audioSetting;
+}
+
 terminal.innerHTML = '音频文件：<a href="./assets/sound/'+selectedAudioFile+'">'+selectedAudioFile+'</a>';
 
 let currentVolume = parseFloat(volumeSlider.value);

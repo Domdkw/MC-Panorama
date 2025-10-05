@@ -9,14 +9,26 @@ const imgLink = [
     'MHk38znj','SxZZx6X4','WbvYWbRB','2y4ckgW9','05mH0K4G','ZKx71t4C','sgf6z6gK','ydRnj2L6','KjyfHQWP','66dYvJ7Y','0NbVMzmw','GtJKwG0Z',
 ]
 ];
-const imgDate = imgBatch[Math.floor(Math.random() * imgBatch.length)];// 0: 2412 1: 2501 2: 2502 3: create
-const hours = new Date().getHours();
-let theme = "null";
-if (imgDate === "2412" || imgDate === "2501") {
-  if (hours <= 7 || hours > 18) {
-    theme = "night";
-  }else{
-    theme = "day"; 
+// 获取用户选择的全景图，如果没有选择则使用随机选择
+let userSelectedPanorama = typeof sti_panorama !== 'undefined' ? sti_panorama : "none";
+let imgDate, theme;
+
+if (userSelectedPanorama !== "none") {
+  // 如果用户选择了特定的全景图，则解析选择
+  const parts = userSelectedPanorama.split("_");
+  imgDate = parts[0];
+  theme = parts[1];
+} else {
+  // 如果用户没有选择，则使用原来的随机逻辑
+  imgDate = imgBatch[Math.floor(Math.random() * imgBatch.length)];
+  const hours = new Date().getHours();
+  theme = "null";
+  if (imgDate === "2412" || imgDate === "2501") {
+    if (hours <= 7 || hours > 18) {
+      theme = "night";
+    } else {
+      theme = "day"; 
+    }
   }
 }
 // 保留本地图片源功能模块但默认不启用
@@ -152,7 +164,7 @@ function loadMcPanorama() {
       imgUrl = `./panorama/${imgDate}_${theme}_${n}.png`;
     } else {
       const imgBatchToNum = {"2412": 0, "2501": 1, "2502":2, "create":3,};
-      const themeToNum = {"day": 0, "night": 1};
+      const themeToNum = {"day": 0, "night": 1, "null": 2}; // 添加"null"主题的支持
       let imgOutlinkKey = null;
       if(imgDate === "2501" || imgDate === "2412") {
         imgOutlinkKey = imgLink[imgDomain-1][ imgBatchToNum[imgDate] * 12 + themeToNum[theme]*6 + n+1 ];
