@@ -398,7 +398,7 @@
         await loadFile('mc-background.js', 'js', true, '加载mc-panorama<span class="file-tag y ml">mc-background.js</span>')
         setTimeout(() => {
           loadMcPanorama();
-          //create()
+          create()
         }, 100);
       }catch (e) {
         loadinfo.textContent = 'Failed to load the three.js module!';

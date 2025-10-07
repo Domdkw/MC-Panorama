@@ -1,5 +1,192 @@
 <style>
-    /* 提示文本框样式 */
+    /* CSS变量定义 */
+    :root {
+        --button-size: 50px;
+        --button-padding: 2px;
+        --button-radius: 3px;
+        --icon-size: 16px;
+        --icon-scale: 2.5;
+        --icon-margin: -4px;
+        --transition-time: 0.05s;
+        --shortcut-font-size: 16px;
+
+        /* 颜色变量 */
+        --color-idle-dark: #2d3748;
+        --color-idle-light: #4a5568;
+        --color-hover-dark: #3d4758;
+        --color-hover-light: #5a6578;
+        --color-click-dark: #1d2738;
+        --color-click-light: #3a4558;
+        --color-disable-dark: #4a5568;
+        --color-disable-light: #718096;
+        --color-active-dark: #ff8a426f;
+        --color-active-light: #ff6b356f;
+        --color-shortcut: #a0aec0;
+        --color-tag-bg: rgba(0, 0, 0, 0.8);
+    }
+
+    /* 基础按钮样式 */
+    .ponder-button {
+        width: var(--button-size);
+        height: var(--button-size);
+        padding: var(--button-padding);
+        border-radius: var(--button-radius);
+        cursor: pointer;
+        transition: all var(--transition-time) ease-in-out;
+        font-family: 'Minecraft', Arial, sans-serif;
+        box-sizing: border-box;
+        border: 1px solid;
+    }
+
+    /* 布局容器 */
+    #ponder-create-main {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        pointer-events: none;
+        z-index: 400;
+    }
+
+    #ponder-control-buttons {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 15%;
+        pointer-events: none;
+    }
+
+    #ponder-control-buttons .ponder-button {
+        position: absolute;
+        pointer-events: auto;
+        background: none;
+    }
+    #ponder-control-buttons .ponder-button:hover {
+        background: rgba(0, 0, 0, 0.3);
+        border-color: var(--color-hover-light);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        transform: translateY(-1px);
+    }
+
+    #ponder-tag-buttons {
+        position: absolute;
+        top: 81px;
+        left: 31px;
+        pointer-events: none;
+    }
+
+    #ponder-tag-buttons .ponder-button {
+        pointer-events: auto;
+        margin-bottom: 10px;
+    }
+
+    .ponder-button.disable {
+        background: linear-gradient(to bottom, var(--color-disable-light), var(--color-disable-dark));
+        border-color: var(--color-disable-light);
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .ponder-button.active {
+        background: linear-gradient(to bottom, var(--color-active-light), var(--color-active-dark)) !important;
+        border-color: var(--color-active-light) !important;
+    }
+
+    .ponder-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        pointer-events: none;
+    }
+
+
+    /* 按钮内容 */
+    .ponder-button-content {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+    }
+
+    /* 图标和游戏元素 */
+    .ponder-button-game-element,
+    .ponder-button-icon {
+        width: var(--icon-size);
+        height: var(--icon-size);
+        transform: scale(var(--icon-scale));
+        margin: var(--icon-margin);
+        background-size: contain;
+        background-repeat: no-repeat;
+        background-position: center;
+        image-rendering: pixelated;
+    }
+
+    /* 标签和提示 */
+    .ponder-button-shortcut {
+        position: absolute;
+        bottom: -6px;
+        right: 8px;
+        font-size: var(--shortcut-font-size);
+        color: var(--color-shortcut);
+        pointer-events: none;
+        z-index: 430;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+    }
+
+    .ponder-button-tag {
+        position: absolute;
+        top: -20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--color-tag-bg);
+        color: white;
+        padding: 4px 8px;
+        border-radius: var(--button-radius);
+        font-size: 11px;
+        white-space: nowrap;
+        opacity: 0;
+        transition: opacity 0.3s ease-in-out;
+        pointer-events: none;
+        z-index: 500;
+    }
+
+    .ponder-button:hover .ponder-button-shortcut,
+    .ponder-button:hover .ponder-button-tag {
+        opacity: 1;
+    }
+
+    /* 动画效果 */
+    .ponder-button.flash {
+      background: linear-gradient(to bottom, rgba(255, 255, 255, 0.3), rgba(155, 155, 155, 0.3)) !important;
+      border-color: rgba(255, 255, 255, 0.3) !important;
+    }
+
+    .ponder-button.fade-in {
+        animation: ponderButtonFadeIn 0.3s ease-in-out forwards;
+    }
+
+    .ponder-button.fade-out {
+        animation: ponderButtonFadeOut 0.3s ease-in-out forwards;
+    }
+
+    @keyframes ponderButtonFadeIn {
+        from { opacity: 0; transform: scale(0.8); }
+        to { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes ponderButtonFadeOut {
+        from { opacity: 1; transform: scale(1); }
+        to { opacity: 0; transform: scale(0.8); }
+    }
+
+</style>
+<style>
+      /* 提示文本框样式 */
     .ponder-tip-progress {
         position: absolute;
         color: #FFFFFF;
@@ -70,4 +257,262 @@
         }
       });
     }
+</script>
+<div id="ponder-create-main" style="z-index: 400;">
+  <!-- 标签按钮 (左侧垂直排列) -->
+  <div id="ponder-create-title">
+    <!-- 标签按钮将通过JavaScript动态生成 -->
+  </div>
+  
+  <!-- 底部控制按钮 (水平排列) -->
+  <div id="ponder-control-buttons">
+    <!-- 探索按钮 -->
+    <button class="ponder-button" id="ponder-create-btn-explore" data-shortcut="Q">
+      <div class="ponder-button-content">
+        <div class="ponder-button-game-element" style="background-image: url('/ponder/create/gui/10-4.png');"></div>
+        <div class="ponder-button-shortcut">Q</div>
+        <div class="ponder-button-tag">探索</div>
+      </div>
+    </button>
+
+    <!-- 左箭头按钮 -->
+    <button class="ponder-button" id="ponder-create-btn-left" data-shortcut="A">
+      <div class="ponder-button-content">
+        <div class="ponder-button-game-element" style="background-image: url('/ponder/create/gui/10-1.png');"></div>
+        <div class="ponder-button-shortcut">A</div>
+        <div class="ponder-button-tag">上一页</div>
+      </div>
+    </button>
+    
+    <!-- 关闭按钮 -->
+    <button class="ponder-button" id="ponder-create-btn-close" data-shortcut="E">
+      <div class="ponder-button-content">
+        <div class="ponder-button-game-element" style="background-image: url('/ponder/create/gui/10-2.png');"></div>
+        <div class="ponder-button-shortcut">E</div>
+        <div class="ponder-button-tag">关闭</div>
+      </div>
+    </button>
+    
+    <!-- 右箭头按钮 -->
+    <button class="ponder-button" id="ponder-create-btn-right" data-shortcut="D">
+      <div class="ponder-button-content">
+        <div class="ponder-button-game-element" style="background-image: url('/ponder/create/gui/10-3.png');"></div>
+        <div class="ponder-button-shortcut">D</div>
+        <div class="ponder-button-tag">下一页</div>
+      </div>
+    </button>
+
+    <!-- 重播按钮 -->
+    <button class="ponder-button" id="ponder-create-btn-replay" data-shortcut="S">
+      <div class="ponder-button-content">
+        <div class="ponder-button-game-element" style="background-image: url('/ponder/create/gui/10-5.png');"></div>
+        <div class="ponder-button-shortcut">S</div>
+        <div class="ponder-button-tag">重播</div>
+      </div>
+    </button>
+      <!-- 慢速模式按钮 (右侧) -->
+    <button class="ponder-button outer" id="ponder-create-btn-slow-mode">
+      <div class="ponder-button-content">
+        <div class="ponder-button-game-element" style="background-image: url('/ponder/create/gui/10-7.png');"></div>
+        <div class="ponder-button-tag">慢速模式</div>
+      </div>
+    </button>
+    
+    <!-- 用户模式按钮 (编辑模式下显示) -->
+    <button class="ponder-button" id="ponder-create-btn-developer-mode">
+      <div class="ponder-button-content">
+        <div class="ponder-button-game-element" style="background-image: url('/ponder/create/gui/10-6.png');"></div>
+        <div class="ponder-button-tag">切换为开发者</div>
+      </div>
+    </button>
+  </div>
+  
+  <!-- 进度条 -->
+   <style>
+    #ponder-create-progress-bar {
+      position: absolute;
+      bottom: 16%;
+      left: 25%;
+      width: 50%;
+      height: 10px;
+      background: none;
+      margin-top: 10px;
+      overflow: hidden;
+    }
+    #ponder-create-progress-fill {
+      height: 100%;
+      background-color: #fff;
+      width: 0%;
+      transition: width 0.3s ease-in-out;
+    }
+   </style>
+  <div id="ponder-create-progress-bar">
+    <div id="ponder-create-progress-fill"></div>
+  </div>
+</div>
+
+<script>
+// 按钮交互逻辑
+class PonderButtonManager {
+  constructor() {
+    this.buttons = {};
+    this.currentState = 'idle';
+    this.init();
+  }
+  
+  init() {
+    // 获取所有按钮
+    const buttons = document.querySelectorAll('.ponder-button');
+    buttons.forEach(button => {
+      const id = button.id;
+      this.buttons[id] = button;
+      
+      // 添加事件监听器
+      button.addEventListener('click', (e) => this.handleClick(e, button));
+    });
+    
+    // 添加快捷键支持
+    this.initShortcuts();
+  }
+    
+  handleClick(event, button) {
+    event.preventDefault();
+    const buttonId = button.id;
+    
+    switch(buttonId) {
+      case 'ponder-create-btn-explore':
+        this.toggleIdentifyMode();
+        break;
+      case 'ponder-create-btn-left':
+        this.scroll(false);
+        break;
+      case 'ponder-create-btn-close':
+        this.closePonderUI();
+        break;
+      case 'ponder-create-btn-right':
+        this.scroll(true);
+        break;
+      case 'ponder-create-btn-replay':
+        this.replay();
+        break;
+      case 'ponder-create-btn-slow-mode':
+        this.toggleSlowMode();
+        break;
+      case 'ponder-create-btn-developer-mode':
+        this.toggleDeveloperMode();
+        break;
+    }
+  }
+  
+  initShortcuts() {
+    document.addEventListener('keydown', (e) => {
+      const key = e.key.toUpperCase();
+      
+      switch(key) {
+        case 'Q': // 扫描
+          document.getElementById('ponder-create-btn-explore')?.click();
+          break;
+        case 'A': // 左箭头
+          document.getElementById('ponder-create-btn-left')?.click();
+          break;
+        case 'E': // 关闭
+          document.getElementById('ponder-create-btn-close')?.click();
+          break;
+        case 'D': // 右箭头
+          document.getElementById('ponder-create-btn-right')?.click();
+          break;
+        case 'S': // 重播
+          document.getElementById('ponder-create-btn-replay')?.click();
+          break;
+      }
+    });
+  }
+  
+  toggleIdentifyMode() {
+    console.log('切换识别模式');
+    const scanButton = document.getElementById('ponder-create-btn-explore');
+    scanButton.classList.toggle('flash');
+  }
+  
+  scroll(forward) {
+    console.log(forward ? '向前翻页' : '向后翻页');
+  }
+  
+  closePonderUI() {
+    console.log('关闭Ponder UI');
+    // 这里可以添加关闭逻辑
+  }
+  
+  replay() {
+    console.log('重播场景');
+  }
+  
+  toggleSlowMode() {
+    console.log('切换慢速模式');
+    const slowModeButton = document.getElementById('ponder-create-btn-slow-mode');
+    slowModeButton.classList.toggle('active');
+  }
+  
+  toggleDeveloperMode() {
+    const developerModeButton = document.getElementById('ponder-create-btn-developer-mode');
+    const isActive = developerModeButton.classList.contains('active');
+    developerModeButton.classList.toggle('active');
+    developerModeButton.querySelector('.ponder-button-tag').textContent = isActive ? '切换为开发者' : '切换为用户';
+    developerModeUI.terminal(isActive);
+  }
+  
+  // 进度条控制
+  setProgress(percent) {
+    const progressFill = document.getElementById('ponder-create-progress-fill');
+    if (progressFill) {
+      progressFill.style.width = percent + '%';
+    }
+  }
+  
+  // 显示/隐藏用户模式按钮
+  setEditingMode(active) {
+    const developerModeButton = document.getElementById('ponder-create-btn-developer-mode');
+    if (developerModeButton) {
+      developerModeButton.style.display = active ? 'block' : 'none';
+    }
+  }
+}
+
+function renderPonderUI() {
+  const buttonSize = '50';
+  const WW = window.innerWidth;
+  const WH = window.innerHeight;
+  const ponderControlButtons = document.getElementById('ponder-control-buttons').querySelectorAll('.ponder-button');
+  ponderControlButtons.forEach(button => {
+    if (!button.id) return;
+    switch(button.id) {
+      case 'ponder-create-btn-explore':
+        button.style.left = `${WW / 2 - buttonSize*4.5}px`;
+        break;
+      case 'ponder-create-btn-left':
+        button.style.left = `${WW / 2 - buttonSize*2}px`;
+        break;
+      case 'ponder-create-btn-close':
+        button.style.left = `${WW / 2 - buttonSize/2}px`;
+        break;
+      case 'ponder-create-btn-right':
+        button.style.left = `${WW / 2 + buttonSize*1}px`;
+        break;
+      case 'ponder-create-btn-replay':
+        button.style.left = `${WW / 2 + buttonSize*3}px`;
+        break;
+      case 'ponder-create-btn-slow-mode':
+        button.style.right = '64px';
+        break;
+      case 'ponder-create-btn-developer-mode':
+        button.style.right = '12px';
+        break;
+    }
+  });
+}
+// 创建PonderButtonManager实例
+const ponderButtonManager = new PonderButtonManager();
+
+renderPonderUI();
+window.addEventListener('resize', renderPonderUI);
 </script>

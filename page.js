@@ -106,65 +106,51 @@ function hiddenlang(){
       localStorage.setItem(langStorageKey, JSON.stringify(langJson));
       
       // 如果是ooops支持的语言，也需要更新ooops数据
-      if(spanId === 'zh-CN' || spanId === 'en-US') {
-        // 重置该语言的ooops下载状态，以便重新下载
-        if(spanId === 'zh-CN' && DlOoops[0]['zh-CN']) {
-          DlOoops[0]['zh-CN'] = false;
-          localStorage.setItem('DlOoops', JSON.stringify(DlOoops));
-          // 清除旧的ooops文本
-          localStorage.removeItem('OoopsText');
-        } else if(spanId === 'en-US' && DlOoops[1]['en-US']) {
-          DlOoops[1]['en-US'] = false;
-          localStorage.setItem('DlOoops', JSON.stringify(DlOoops));
-          // 清除旧的ooops文本
-          localStorage.removeItem('OoopsText');
-        }
-        
-        // 如果启用了更多ooops信息，则重新加载ooops
-        if(sti_moreOoops) {
-          (async () => {
-            let targetLang = sti_ooops_lang === "auto" ? spanId : sti_ooops_lang;
-            
-            // 如果用户选择的是"auto"，则根据当前选择的语言自动选择
-            if(targetLang === "auto") {
-              targetLang = spanId;
-            }
-            
-            // 根据目标语言加载对应的ooops文件
-            if(targetLang === 'zh-CN'){
-              if(!DlOoops[0]['zh-CN']){//检查语言是否启用并下载文本集合存储在localStorage中
-                let OoopsText = await loadFile('./assets/ooops/zh-CN.json','json',true,'获取zh-CN的ooops文件') || null;
-                if(!OoopsText) return;
-                localStorage.setItem('OoopsText', JSON.stringify(OoopsText));
-                DlOoops[0]['zh-CN'] = true;
-                localStorage.setItem('DlOoops', JSON.stringify(DlOoops));
-                // 更新页面上的ooops文本
-                const ooopsInnerText = JSON.parse(localStorage.getItem('OoopsText'));
-                if(ooopsInnerText){
-                  ooops.innerHTML = ooopsInnerText[Math.floor(Math.random() * ooopsInnerText.length)];
-                  ooops.style.right = `-${ooops.offsetWidth/3}px`;
-                  ooops.style.fontSize = `${-0.6*ooops.textContent.length +35}px`;
+        if(spanId === 'zh-CN' || spanId === 'en-US') {
+          // 如果当前已下载的语言与目标语言不同，则清除旧的ooops文本
+          let targetLang = sti_ooops_lang === "auto" ? spanId : sti_ooops_lang;
+          
+          // 如果用户选择的是"auto"，则根据当前选择的语言自动选择
+          if(targetLang === "auto") {
+            targetLang = spanId;
+          }
+          
+          if(DlOoops !== targetLang) {
+            // 清除旧的ooops文本
+            localStorage.removeItem('OoopsText');
+          }
+          
+          // 如果启用了更多ooops信息，则重新加载ooops
+          if(sti_moreOoops) {
+            (async () => {
+              // 如果当前已下载的语言与目标语言不同，或者没有下载任何语言，则重新下载
+              if(DlOoops !== targetLang) {
+                let OoopsText = null;
+                
+                // 根据目标语言加载对应的ooops文件
+                if(targetLang === 'zh-CN'){
+                  OoopsText = await loadFile('./assets/ooops/zh-CN.json','json',true,'获取zh-CN的ooops文件') || null;
+                } else if(targetLang === 'en-US'){
+                  OoopsText = await loadFile('./assets/ooops/en-US.json','json',true,'get en-US ooops file') || null;
+                }
+                
+                if(OoopsText) {
+                  localStorage.setItem('OoopsText', JSON.stringify(OoopsText));
+                  DlOoops = targetLang; // 更新为当前下载的语言
+                  localStorage.setItem('DlOoops', DlOoops); // 直接存储语言代码字符串
+                  
+                  // 更新页面上的ooops文本
+                  const ooopsInnerText = JSON.parse(localStorage.getItem('OoopsText'));
+                  if(ooopsInnerText){
+                    ooops.innerHTML = ooopsInnerText[Math.floor(Math.random() * ooopsInnerText.length)];
+                    ooops.style.right = `-${ooops.offsetWidth/3}px`;
+                    ooops.style.fontSize = `${-0.6*ooops.textContent.length +35}px`;
+                  }
                 }
               }
-            } else if(targetLang === 'en-US'){
-              if(!DlOoops[1]['en-US']){
-                let OoopsText = await loadFile('./assets/ooops/en-US.json','json',true,'get en-US ooops file') || null;
-                if(!OoopsText) return;
-                localStorage.setItem('OoopsText', JSON.stringify(OoopsText));
-                DlOoops[1]['en-US'] = true;
-                localStorage.setItem('DlOoops', JSON.stringify(DlOoops));
-                // 更新页面上的ooops文本
-                const ooopsInnerText = JSON.parse(localStorage.getItem('OoopsText'));
-                if(ooopsInnerText){
-                  ooops.innerHTML = ooopsInnerText[Math.floor(Math.random() * ooopsInnerText.length)];
-                  ooops.style.right = `-${ooops.offsetWidth/3}px`;
-                  ooops.style.fontSize = `${-0.6*ooops.textContent.length +35}px`;
-                }
-              }
-            }
-          })();
+            })();
+          }
         }
-      }
       
       terminal.innerHTML = '加载语言-'+spanId+'成功' + (langDataExists ? '（已更新存储）' : '');
     })
@@ -203,9 +189,9 @@ function unicode(){
 const ooops = document.querySelector('.ooops');
 // 尝试从 localStorage 获取 DlOoops 数据，若不存在则初始化
 let DlOoopsStr = localStorage.getItem('DlOoops');
-let DlOoops = [{'zh-CN':false},{'en-US':false}];
+let DlOoops = ''; // 默认值为空字符串，表示未下载任何ooops文件
 if(DlOoopsStr){
-  DlOoops = JSON.parse(DlOoopsStr);
+  DlOoops = DlOoopsStr; // 直接存储语言代码字符串
 }
 if(sti_moreOoops){//不仅检查moreooops是否启用，并且检查用户是否同意使用LS
   (async ()=>{//下载对应语言的文本
@@ -220,22 +206,21 @@ if(sti_moreOoops){//不仅检查moreooops是否启用，并且检查用户是否
       }
     }
     
-    // 根据目标语言加载对应的ooops文件
-    if(targetLang === 'zh-CN'){
-      if(!DlOoops[0]['zh-CN']){//检查语言是否启用并下载文本集合存储在localStorage中
-        let OoopsText = await loadFile('./assets/ooops/zh-CN.json','json',true,'获取zh-CN的ooops文件') || null;
-        if(!OoopsText) return;
-        localStorage.setItem('OoopsText', JSON.stringify(OoopsText));
-        DlOoops[0]['zh-CN'] = true;
-        localStorage.setItem('DlOoops', JSON.stringify(DlOoops));
+    // 如果当前已下载的语言与目标语言不同，或者没有下载任何语言，则重新下载
+    if(DlOoops !== targetLang) {
+      let OoopsText = null;
+      
+      // 根据目标语言加载对应的ooops文件
+      if(targetLang === 'zh-CN'){
+        OoopsText = await loadFile('./assets/ooops/zh-CN.json','json',true,'获取zh-CN的ooops文件') || null;
+      } else if(targetLang === 'en-US'){
+        OoopsText = await loadFile('./assets/ooops/en-US.json','json',true,'get en-US ooops file') || null;
       }
-    } else if(targetLang === 'en-US'){
-      if(!DlOoops[1]['en-US']){
-        let OoopsText = await loadFile('./assets/ooops/en-US.json','json',true,'get en-US ooops file') || null;
-        if(!OoopsText) return;
+      
+      if(OoopsText) {
         localStorage.setItem('OoopsText', JSON.stringify(OoopsText));
-        DlOoops[1]['en-US'] = true;
-        localStorage.setItem('DlOoops', JSON.stringify(DlOoops));
+        DlOoops = targetLang; // 更新为当前下载的语言
+        localStorage.setItem('DlOoops', DlOoops); // 直接存储语言代码字符串
       }
     }
   })();
