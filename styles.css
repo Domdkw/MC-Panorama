@@ -505,7 +505,7 @@ main .outside-btn{
   background: none;
   color: inherit;
   font-size: 16px;
-  border: inherit solid 1px;
+  border: none;
   padding: 2px;
 }
 .setting-item>select option{

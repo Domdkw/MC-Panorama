@@ -8,45 +8,7 @@
   <style>body{margin: 0;} canvas{position: fixed;filter: contrast(1.6);}</style>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="./assets/page/Dragon_Head_JE1_BE1.png">
-  <style>
-    .load {
-      z-index: 100;
-      background-color: #d10000;
-      opacity: 1;
-      transition: opacity 1s ease-in-out;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      flex-direction: column;
-    }
-    .loadstate {
-      width: 65%;
-      margin-top: .6rem;
-      padding: .4rem 10px 5px 10px;
-      font-weight: bolder;
-      transition: all 0.5s ease-in-out;
-    }
-    .loadinfo {
-      color: white;
-      font-size: 18px;
-    }
-    .loadstate .rangebox {
-      height: 16px;
-      border: 3px solid white;
-      margin-top: 5px;
-      padding: 3px;
-    }
-    .loadstate .rangeblock {
-      transition: width 0.5s ease-in-out;
-      width: 0%;
-      height: 100%;
-      background-color: white;
-    }
-    .bugjump {
-      width: 70%;
-      margin-bottom: 1rem;
-    }
-  </style>
+  <style>.load{z-index:100;background-color:#d10000;opacity:1;transition:opacity 1s ease-in-out;display:flex;justify-content:center;align-items:center;flex-direction:column}.loadstate{width:65%;margin-top:.6rem;padding:.4rem 10px 5px 10px;font-weight:bolder;transition:all .5s ease-in-out}.loadinfo{color:white;font-size:18px}.loadstate .rangebox{height:16px;border:3px solid white;margin-top:5px;padding:3px}.loadstate .rangeblock{transition:width .5s ease-in-out;width:0;height:100%;background-color:white}.bugjump{width:70%;margin-bottom:1rem}.compatibility-warning{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.9);z-index:9999;color:white;display:none;justify-content:center;align-items:center;text-align:center;padding:20px}.compatibility-warning.show{display:flex}.warning-box{max-width:450px;background-color:#222;padding:25px;border:2px solid #ff4444}.warning-title{color:#ff4444;margin-bottom:15px;font-size:20px}.warning-desc{margin-bottom:15px;line-height:1.5}.warning-list{text-align:left;margin-bottom:20px;line-height:1.6}.warning-button{background:none;color:white;border:2px solid gray;padding:10px 20px;cursor:pointer;font-size:16px}</style>
   <script type="importmap">
       {
           "imports": {
@@ -58,6 +20,18 @@
 </head>
 <body>
   <section class="load abso"><img class="bugjump" src="./assets/page/bugjump.png" alt="BUGJUMP"></img></section>
+  <!-- 兼容性警告 -->
+  <section id="compatibility-warning" class="compatibility-warning">
+    <div class="warning-box">
+      <h2 class="warning-title">⚠️ 兼容性警告</h2>
+      <p class="warning-desc">检测到您的设备存在兼容性问题：</p>
+      <ul class="warning-list" id="warning-issues">
+        <!-- 警告内容将动态生成 -->
+      </ul>
+      <p class="warning-desc">建议使用现代桌面浏览器以获得最佳体验。</p>
+      <button class="warning-button" onclick="hideCompatibilityWarning()">继续访问</button>
+    </div>
+  </section>
   <audio id="Playmusic"></audio>
   <section id="app">
     <main id="title" class="unselectable">
@@ -145,6 +119,7 @@
       <div class="tab-container">
         <button class="tab active canClick" onclick="options.subPage('General')">通用</button>
         <button class="tab canClick" onclick="options.subPage('Browser')">浏览器信息</button>
+        <button class="tab canClick" onclick="options.subPage('Ponder')">Ponder</button>
         <button class="tab done canClick" onclick="options.hide();options.save()">完成</button>
       </div>
       <div class="setting-main">
@@ -220,6 +195,12 @@
             <style>#service-provider>*{margin:2rem}</style>
             <div id="service-provider" style="display:flex;flex-wrap:wrap;justify-content:space-evenly;align-items:center;min-height:10rem;">
               <button onclick="document.getElementById('service-provider').innerHTML=service_provider">服务提供商</button>
+            </div>
+          </div>
+          <div class="setting-div Ponder">
+            <div id="sti-showConsole" class="setting-item checkbox" data-type="checkbox">
+              <span class="setting-label">显示控制台</span>
+              <label class="canClick"><input class="canClick" type="checkbox"></label>
             </div>
           </div>
         </div>
@@ -398,7 +379,8 @@
         await loadFile('mc-background.js', 'js', true, '加载mc-panorama<span class="file-tag y ml">mc-background.js</span>')
         setTimeout(() => {
           loadMcPanorama();
-          create()
+          checkHref();
+          //create()
         }, 100);
       }catch (e) {
         loadinfo.textContent = 'Failed to load the three.js module!';

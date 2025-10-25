@@ -1,8 +1,16 @@
 //2025.8.12 从/index.html抽离
 //此脚本用于构建HTML、拉取JS文件和处理物品数据
+//初始化
+let ponderApi;
+let processURL;
 
 // terminal
 document.getElementById('terminal').style.zIndex = 4;
+
+//通过?processURL=指定流程URL,直接加载 -2025.10.18
+const UPpu1 = new URLSearchParams(window.location.search).get('processURL');
+//to line34
+
 //添加表格
 const CreatePage = document.createElement('section');
 CreatePage.id = 'create-page';
@@ -24,24 +32,26 @@ CreatePage.innerHTML = `
 `;
 body.appendChild(CreatePage);
 
-//初始化
-let ponderApi;
-let processURL;
-// 获取物品JSON数据
-const ItemJson = fetch('./ponder/item.json');
-terminal.innerHTML = '加载物品列表数据(/ponder/item.json)';
-ItemJson.then(res => res.json()).then(json => {
-  // 等待页面元素创建完成后处理数据
-  setTimeout(() => {
-    addItemsToGrid(json);
-  }, 100);
-}).catch(e => {console.error(e);terminal.innerHTML = e;});
+if (UPpu1) {
+  processURL = UPpu1;
+  terminal.innerHTML = '通过?processURL=指定流程URL,直接加载:'+processURL;
+  ponderApiLoad().catch(error => {console.error('Failed to load ponder API:', error);});
+}else{
+  // 获取物品JSON数据
+  const ItemJson = fetch('./ponder/item.json');
+  terminal.innerHTML += '加载物品列表数据(/ponder/item.json)<br>';
+  ItemJson.then(res => res.json()).then(json => {
+    // 等待页面元素创建完成后处理数据
+    setTimeout(() => {
+      addItemsToGrid(json);
+    }, 100);
+  }).catch(e => {console.error(e);terminal.innerHTML = e;});
+}
 
 // 将物品添加到表格网格并实现分页功能8.15
 function addItemsToGrid(items) {
   const table = document.getElementById('chest-grid');
   if (!table) return;
-  terminal.innerHTML = '';
   // 配置
   const itemsPerPage = 45; // 5行 × 9列
   let currentPage = 0;
@@ -142,7 +152,7 @@ function addItemsToGrid(items) {
 //拉取文件显示函数->调用SNLB（简单封装一下）
 function sf (n){
   const {loadinfo} = SNLB('ponderFile-'+n, false);
-  loadinfo.textContent = '加载思索程序文件-'+n;
+  loadinfo.textContent = n;
 }
 
 async function ponderApiLoad() {

@@ -183,9 +183,22 @@
         from { opacity: 1; transform: scale(1); }
         to { opacity: 0; transform: scale(0.8); }
     }
-
-</style>
-<style>
+    #ponder-create-progress-bar {
+      position: absolute;
+      bottom: 16%;
+      left: 25%;
+      width: 50%;
+      height: 10px;
+      background: none;
+      overflow: hidden;
+    }
+    #ponder-create-progress-fill {
+      height: 100%;
+      background-color: #fff;
+      width: 0%;
+      transition-property: width;
+      transition-timing-function: ease;
+    }
       /* 提示文本框样式 */
     .ponder-tip-progress {
         position: absolute;
@@ -227,36 +240,42 @@
     }
 </style>
 <script>
-    for (let i = 0; i < Process.loader.engine.length; i++) {
-        const engine = Process.loader.engine[i];
-        console.log('加载engine', engine);
-        loadFile('/ponder/engine/'+engine, 'js', true);
-    }
-</script>
-<script>
-    function loadTHREECSS2DRenderer() {
-      return new Promise(async (resolve, reject) => {
-        const {loadstate, loadinfo, rangeblock} = SNLB('CSS2DRenderer', true);
-        loadinfo.innerHTML = 'Loading the <span class="file-tag y">CSS2DRenderer</span> module...';
+  //替换console.log到terminal, 并添加时间戳,同时显示在控制台
+  const originalConsoleLog = console.log;
+  console.log = function(...arg) {
+    originalConsoleLog.apply(console, arg);
+    terminal.innerHTML += `[${new Date().toLocaleTimeString()}] ${arg.map(item => item.toString()).join(' ')}<br>`;
+    //将terminal滚动条滚到最底下
+    terminal.scrollTop = terminal.scrollHeight;
+  };
+  for (let i = 0; i < Process.loader.engine.length; i++) {
+      const engine = Process.loader.engine[i];
+      console.log('加载engine:', engine);
+      loadFile('/ponder/engine/'+engine, 'js', true);
+  }
+  function loadTHREECSS2DRenderer() {
+    return new Promise(async (resolve, reject) => {
+      const {loadstate, loadinfo, rangeblock} = SNLB('CSS2DRenderer', true);
+      loadinfo.innerHTML = 'Loading the <span class="file-tag y">CSS2DRenderer</span> module...';
+      
+      try {
+        // Load the CSS2DRenderer module
+        const module = await import('three/addons/renderers/CSS2DRenderer.min.js');
+        window.CSS2DRenderer = module.CSS2DRenderer;
+        window.CSS2DObject = module.CSS2DObject;
         
-        try {
-          // Load the CSS2DRenderer module
-          const module = await import('three/addons/renderers/CSS2DRenderer.min.js');
-          window.CSS2DRenderer = module.CSS2DRenderer;
-          window.CSS2DObject = module.CSS2DObject;
-          
-          loadinfo.innerHTML = 'The <span class="file-tag y">CSS2DRenderer</span> module is loaded successfully!';
-          rangeblock.style.width = '100%';
-          loadstate.style.backgroundColor = '#fff6';
+        loadinfo.innerHTML = 'The <span class="file-tag y">CSS2DRenderer</span> module is loaded successfully!';
+        rangeblock.style.width = '100%';
+        loadstate.style.backgroundColor = '#fff6';
           resolve(module);
         }catch (e) {
-          loadinfo.textContent = 'Failed to load the CSS2DRenderer module!';
-          rangeblock.style.width = '0%';
-          console.error(e);
-          reject(e);
-        }
-      });
-    }
+        loadinfo.textContent = 'Failed to load the CSS2DRenderer module!';
+        rangeblock.style.width = '0%';
+        console.error(e);
+        reject(e);
+      }
+    });
+  }
 </script>
 <div id="ponder-create-main" style="z-index: 400;">
   <!-- 标签按钮 (左侧垂直排列) -->
@@ -310,7 +329,8 @@
         <div class="ponder-button-tag">重播</div>
       </div>
     </button>
-      <!-- 慢速模式按钮 (右侧) -->
+    
+    <!-- 慢速模式按钮 (右侧) -->
     <button class="ponder-button outer" id="ponder-create-btn-slow-mode">
       <div class="ponder-button-content">
         <div class="ponder-button-game-element" style="background-image: url('/ponder/create/gui/10-7.png');"></div>
@@ -319,7 +339,7 @@
     </button>
     
     <!-- 用户模式按钮 (编辑模式下显示) -->
-    <button class="ponder-button" id="ponder-create-btn-developer-mode">
+    <button class="ponder-button active" id="ponder-create-btn-developer-mode">
       <div class="ponder-button-content">
         <div class="ponder-button-game-element" style="background-image: url('/ponder/create/gui/10-6.png');"></div>
         <div class="ponder-button-tag">切换为开发者</div>
@@ -328,191 +348,7 @@
   </div>
   
   <!-- 进度条 -->
-   <style>
-    #ponder-create-progress-bar {
-      position: absolute;
-      bottom: 16%;
-      left: 25%;
-      width: 50%;
-      height: 10px;
-      background: none;
-      margin-top: 10px;
-      overflow: hidden;
-    }
-    #ponder-create-progress-fill {
-      height: 100%;
-      background-color: #fff;
-      width: 0%;
-      transition: width 0.3s ease-in-out;
-    }
-   </style>
   <div id="ponder-create-progress-bar">
     <div id="ponder-create-progress-fill"></div>
   </div>
 </div>
-
-<script>
-// 按钮交互逻辑
-class PonderButtonManager {
-  constructor() {
-    this.buttons = {};
-    this.currentState = 'idle';
-    this.init();
-  }
-  
-  init() {
-    // 获取所有按钮
-    const buttons = document.querySelectorAll('.ponder-button');
-    buttons.forEach(button => {
-      const id = button.id;
-      this.buttons[id] = button;
-      
-      // 添加事件监听器
-      button.addEventListener('click', (e) => this.handleClick(e, button));
-    });
-    
-    // 添加快捷键支持
-    this.initShortcuts();
-  }
-    
-  handleClick(event, button) {
-    event.preventDefault();
-    const buttonId = button.id;
-    
-    switch(buttonId) {
-      case 'ponder-create-btn-explore':
-        this.toggleIdentifyMode();
-        break;
-      case 'ponder-create-btn-left':
-        this.scroll(false);
-        break;
-      case 'ponder-create-btn-close':
-        this.closePonderUI();
-        break;
-      case 'ponder-create-btn-right':
-        this.scroll(true);
-        break;
-      case 'ponder-create-btn-replay':
-        this.replay();
-        break;
-      case 'ponder-create-btn-slow-mode':
-        this.toggleSlowMode();
-        break;
-      case 'ponder-create-btn-developer-mode':
-        this.toggleDeveloperMode();
-        break;
-    }
-  }
-  
-  initShortcuts() {
-    document.addEventListener('keydown', (e) => {
-      const key = e.key.toUpperCase();
-      
-      switch(key) {
-        case 'Q': // 扫描
-          document.getElementById('ponder-create-btn-explore')?.click();
-          break;
-        case 'A': // 左箭头
-          document.getElementById('ponder-create-btn-left')?.click();
-          break;
-        case 'E': // 关闭
-          document.getElementById('ponder-create-btn-close')?.click();
-          break;
-        case 'D': // 右箭头
-          document.getElementById('ponder-create-btn-right')?.click();
-          break;
-        case 'S': // 重播
-          document.getElementById('ponder-create-btn-replay')?.click();
-          break;
-      }
-    });
-  }
-  
-  toggleIdentifyMode() {
-    console.log('切换识别模式');
-    const scanButton = document.getElementById('ponder-create-btn-explore');
-    scanButton.classList.toggle('flash');
-  }
-  
-  scroll(forward) {
-    console.log(forward ? '向前翻页' : '向后翻页');
-  }
-  
-  closePonderUI() {
-    console.log('关闭Ponder UI');
-    // 这里可以添加关闭逻辑
-  }
-  
-  replay() {
-    console.log('重播场景');
-  }
-  
-  toggleSlowMode() {
-    console.log('切换慢速模式');
-    const slowModeButton = document.getElementById('ponder-create-btn-slow-mode');
-    slowModeButton.classList.toggle('active');
-  }
-  
-  toggleDeveloperMode() {
-    const developerModeButton = document.getElementById('ponder-create-btn-developer-mode');
-    const isActive = developerModeButton.classList.contains('active');
-    developerModeButton.classList.toggle('active');
-    developerModeButton.querySelector('.ponder-button-tag').textContent = isActive ? '切换为开发者' : '切换为用户';
-    developerModeUI.terminal(isActive);
-  }
-  
-  // 进度条控制
-  setProgress(percent) {
-    const progressFill = document.getElementById('ponder-create-progress-fill');
-    if (progressFill) {
-      progressFill.style.width = percent + '%';
-    }
-  }
-  
-  // 显示/隐藏用户模式按钮
-  setEditingMode(active) {
-    const developerModeButton = document.getElementById('ponder-create-btn-developer-mode');
-    if (developerModeButton) {
-      developerModeButton.style.display = active ? 'block' : 'none';
-    }
-  }
-}
-
-function renderPonderUI() {
-  const buttonSize = '50';
-  const WW = window.innerWidth;
-  const WH = window.innerHeight;
-  const ponderControlButtons = document.getElementById('ponder-control-buttons').querySelectorAll('.ponder-button');
-  ponderControlButtons.forEach(button => {
-    if (!button.id) return;
-    switch(button.id) {
-      case 'ponder-create-btn-explore':
-        button.style.left = `${WW / 2 - buttonSize*4.5}px`;
-        break;
-      case 'ponder-create-btn-left':
-        button.style.left = `${WW / 2 - buttonSize*2}px`;
-        break;
-      case 'ponder-create-btn-close':
-        button.style.left = `${WW / 2 - buttonSize/2}px`;
-        break;
-      case 'ponder-create-btn-right':
-        button.style.left = `${WW / 2 + buttonSize*1}px`;
-        break;
-      case 'ponder-create-btn-replay':
-        button.style.left = `${WW / 2 + buttonSize*3}px`;
-        break;
-      case 'ponder-create-btn-slow-mode':
-        button.style.right = '64px';
-        break;
-      case 'ponder-create-btn-developer-mode':
-        button.style.right = '12px';
-        break;
-    }
-  });
-}
-// 创建PonderButtonManager实例
-const ponderButtonManager = new PonderButtonManager();
-
-renderPonderUI();
-window.addEventListener('resize', renderPonderUI);
-</script>

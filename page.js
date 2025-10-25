@@ -5,6 +5,7 @@ let sti_moreOoops = false;
 let sti_panorama = "none"; // 新增：存储用户选择的全景图
 let sti_ooops_lang = "auto"; // 新增：存储用户选择的ooops语言
 let sti_audio_file = 'random';// 全局变量用于存储音频文件设置
+let sti_showConsole = true; // 新增：存储用户选择的显示控制台选项
 //sti let end
 //自动应用LS信息25.7.31
 if(LS_accept && localStorage.getItem('sti')){
@@ -14,9 +15,72 @@ if(LS_accept && localStorage.getItem('sti')){
       case 'sti-moreooops':sti_moreOoops = i.value;break;
       case 'sti-panorama':sti_panorama = i.value;break; // 新增：加载用户选择的全景图
       case 'sti-ooops-lang':sti_ooops_lang = i.value;break; // 新增：加载用户选择的ooops语言
+      case 'sti-showConsole':sti_showConsole = i.value;break; // 新增：加载用户选择的显示控制台选项
     }
   });
 }
+
+// 兼容性检测立即执行函数
+(function() {
+  // 检测IE浏览器
+  function isIEBrowser() {
+    return /MSIE|Trident/.test(navigator.userAgent);
+  }
+  
+  // 检测移动端设备
+  function isMobileDevice() {
+    const userAgent = navigator.userAgent.toLowerCase();
+    return /android|iphone|ipod|blackberry|windows phone|webos|iemobile/.test(userAgent);
+  }
+  
+  // 检测WebGL 1.0支持
+  function isWebGL1Supported() {
+    const canvas = document.createElement('canvas');
+    const gl = canvas.getContext('webgl') || canvas.getContext('experimental-webgl');
+    return !!gl;
+  }
+  
+  // 隐藏警告的函数
+  window.hideCompatibilityWarning = function() {
+    const warning = document.getElementById('compatibility-warning');
+    if (warning) {
+      warning.classList.remove('show');
+    }
+  };
+  
+  // 检测兼容性问题
+  const issues = [];
+  
+  if (isIEBrowser()) {
+    issues.push('IE浏览器：不支持现代Web技术');
+  }
+  
+  if (isMobileDevice()) {
+    issues.push('移动设备：3D图形性能较差');
+  }
+  
+  if (!isWebGL1Supported()) {
+    issues.push('WebGL 1.0：不支持或性能过低');
+  }
+  
+  // 如果有兼容性问题，显示警告
+  if (issues.length > 0) {
+    const warning = document.getElementById('compatibility-warning');
+    const issuesList = document.getElementById('warning-issues');
+    
+    if (warning && issuesList) {
+      // 动态生成警告内容
+      issuesList.innerHTML = '';
+      issues.forEach(issue => {
+        const li = document.createElement('li');
+        li.textContent = issue;
+        issuesList.appendChild(li);
+      });
+      
+      warning.classList.add('show');
+    }
+  }
+})();
 
 //region language
 
@@ -403,7 +467,7 @@ function create(){
   css.rel = 'stylesheet';
   body.appendChild(css);
   //追加脚本（无加载屏幕）
-  terminal.innerHTML = '-加载ponder界面渲染脚本(/ponder/index.js) =>插入body<br>-加载表格样式表./chest.css';
+  terminal.innerHTML += '加载ponder界面渲染脚本(/ponder/index.js) =>插入body<br>加载表格样式表./chest.css';
   const script = document.createElement('script');
   script.src = './ponder/index.js';
   body.appendChild(script);
@@ -447,6 +511,10 @@ const options = {
           sti_audio_file = sti.querySelector('select').value;
           // 提示用户需要刷新页面才能看到效果
           terminal.innerHTML = '背景音乐设置已更改，请刷新页面以应用更改';
+        }
+        // 如果是显示控制台的选项，需要更新全局变量
+        if(sti.id === 'sti-showConsole') {
+          sti_showConsole = sti.querySelector('input[type=checkbox]').checked;
         }
         break;
     }
@@ -498,6 +566,10 @@ const options = {
         if(i.id === 'sti-audio-file') {
           sti_audio_file = i.value;
         }
+        // 如果是显示控制台的选项，需要更新全局变量
+        if(i.id === 'sti-showConsole') {
+          sti_showConsole = i.value;
+        }
       break;
     }
   });
@@ -527,6 +599,10 @@ const options = {
       // 如果是指定音频文件的选项，需要更新全局变量
       if(sI.id === 'sti-audio-file') {
         sti_audio_file = value;
+      }
+      // 如果是显示控制台的选项，需要更新全局变量
+      if(sI.id === 'sti-showConsole') {
+        sti_showConsole = value;
       }
     break;
     }
@@ -632,3 +708,17 @@ function askLocalStorage(text) {
   });
 }
 //endregion
+
+//check href
+function checkHref(){
+  const search = window.location.search;
+  //检查是否有ponder参数
+  const ponder = new URLSearchParams(search).get('ponder');
+  console.log('ponder直接跳转参数:', ponder);
+  if(ponder === 'true'){
+    //加载ponder界面
+    create();
+    //先通过create函数拉取出读取进度的主要文件.在那个文件中再进行多次引导到进入ponder
+  }
+  //如果没有的话则需要点击按钮才会进ponder
+}
