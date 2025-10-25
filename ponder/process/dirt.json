@@ -75,8 +75,8 @@
       [
         "fillfall('minecraft:coal_ore',-1,0,-1,1,0,1,2)",
         "idle(2)",
-        "tiparea(-1,0,-1,1,0,1,'一般来说如果使用CreateBase,它默认会进行加载','yellow',1)",
-        "idle(1)",
+        "tiparea(-1,0,-1,1,0,1,'一般来说如果使用CreateBase,它默认会进行加载','yellow',5)",
+        "idle(5)",
         "moveBlock(-1,0,-1,-1,3,-1,3)",
         "idle(3)",
         "tip(-1,3,-1,'可以使用包装过的async异步moveBlock函数来对方块进行移动<br>moveBlock(startX, startY, startZ, targetX, targetY, targetZ, duration)','yellowgreen',7)",

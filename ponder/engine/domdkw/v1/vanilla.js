@@ -275,14 +275,14 @@ const ffawait = ['idle(', 'tip(','moveCamera(false', 'cleanscene(false', 'tipare
 // ========================================
 
 // 解析流程
-async function parseFragment(sceneNum){
+function parseFragment(sceneNum){
   const scene = window.Process.scenes[sceneNum];
   if(!scene) return;
   if(!scene.fragment) return;
   fragmentTotal = scene.fragment.length;
   console.log(`场景${sceneNum}片段总数: ${fragmentTotal}`);
   //删除旧的script
-  const oldScript = document.getElementById('ponderScene'+sceneNum-1);
+  const oldScript = document.getElementById('ponderSceneScript');
   if(oldScript) oldScript.remove();
   //解析fragment
   let ffunctions = '';
@@ -308,7 +308,7 @@ async function parseFragment(sceneNum){
   }
   // 创建片段函数
   const script = document.createElement('script');
-  script.id = 'ponderScene'+sceneNum;
+  script.id = 'ponderSceneScript';
   script.textContent = ffunctions;
   document.body.appendChild(script);
 }
@@ -414,49 +414,80 @@ function startProgressCheck() {
     cancelAnimationFrame(animationFrameId);
   }
   
+  // 启动进度条
+  ProgressBar.start();
+  
+  // 只需要检查片段切换，不需要更新进度条
   function checkProgress() {
     if (!playState.isPlaying) return;
     
     // 检查是否需要切换片段
     checkFragmentSwitch();
     
-    // 更新进度
-    updateProgress();
-    
     // 继续下一帧检查
     animationFrameId = requestAnimationFrame(checkProgress);
   }
   
   // 开始检查
-  checkProgress();
+  animationFrameId = requestAnimationFrame(checkProgress);
 }
 
-// 更新进度
-function updateProgress() {
-  // 计算当前场景的总时间
+// 场景总时间缓存
+let sceneTotalTimeCache = null;
+
+// 计算并缓存场景总时间
+function calculateSceneTotalTime() {
   let totalSceneTime = 0;
   for(let i = 0; i < fragmentTotal; i++) {
     totalSceneTime += calculatePonderFragmentTime(i);
   }
-  
-  // 计算当前已经过的时间
-  let elapsedTime = 0;
-  for(let i = 0; i < playState.currentFragment; i++) {
-    elapsedTime += calculatePonderFragmentTime(i);
+  console.log('当前场景总时间:',totalSceneTime);
+  sceneTotalTimeCache = totalSceneTime;
+  return totalSceneTime;
+}
+
+//进度条
+const progressFill = document.getElementById('ponder-create-progress-fill');
+const ProgressBar = {
+  reset(){
+    // 先移除过渡效果，立即归零
+    progressFill.style.transitionDuration = '0.1s';
+    progressFill.style.width = '0%';
+    console.log('重置进度条');
+  },
+  start(){
+    // 计算场景总时间
+    const totalTime = calculateSceneTotalTime();
+    
+    if (totalTime > 0) {
+      // 先移除过渡效果，立即归零
+      progressFill.style.transitionDuration = '0.1s';
+      progressFill.style.width = '0%';
+      
+      // 触发重排以确保立即归零生效
+      void progressFill.offsetWidth;
+      
+      // 设置过渡时间为场景总时间，启动动画
+      progressFill.style.transitionDuration = totalTime+'s';
+      progressFill.style.width = '100%';
+    }
+  },
+  pause(){
+    // 获取当前进度
+    const currentWidth = window.getComputedStyle(progressFill).width;
+    
+    // 设置快速过渡效果（0.1秒）
+    progressFill.style.transition = 'width 0.1s linear';
+    
+    // 保持当前进度
+    progressFill.style.width = currentWidth;
   }
-  
-  // 加上当前片段已经过的时间
-  const currentFragmentTime = fragmentClock.fragment() / 1000; // 转换为秒
-  const currentFragmentDuration = calculatePonderFragmentTime(playState.currentFragment);
-  elapsedTime += Math.min(currentFragmentTime, currentFragmentDuration);
-  
-  // 计算进度百分比
-  playState.progress = totalSceneTime > 0 ? (elapsedTime / totalSceneTime) * 100 : 0;
-  
-  // 更新UI进度条
-  if (window.ponderButtonManager) {
-    window.ponderButtonManager.setProgress(playState.progress);
-  }
+}
+
+// 更新进度 - 现在只用于检查片段切换，不再更新进度条
+function updateProgress() {
+  // 检查是否需要切换片段
+  checkFragmentSwitch();
 }
 
 // 切换到指定场景
@@ -467,13 +498,14 @@ function switchToScene(sceneNum) {
   }
   
   // 清理当前场景
-  cleanscene(false, 1);
+  cleanscene(false, 0.5);
   
   // 更新播放状态
   playState.currentScene = sceneNum;
   playState.currentFragment = 0;
   playState.progress = 0;
-  
+  // 清除场景总时间缓存，因为场景已切换
+  sceneTotalTimeCache = null;
   // 确保片段时间时钟已初始化
   if (!fragmentClock) {
     fragmentClock = new fragmentDateClock();
@@ -489,6 +521,14 @@ function switchToScene(sceneNum) {
   // 创建新场景的基础
   CreateBase(sceneNum);
   
+  // 重置进度条
+  ProgressBar.reset();
+
+  // 启动进度条(延迟0.1秒)
+  setTimeout(() => {
+    ProgressBar.start();
+  }, 100);
+  
   // 如果正在播放，开始播放新场景的第一个片段
   if (playState.isPlaying) {
     const firstFragmentFunction = window['ponderFragment' + playState.currentFragment];
@@ -496,9 +536,6 @@ function switchToScene(sceneNum) {
       firstFragmentFunction();
     }
   }
-  
-  // 更新UI状态
-  updateUIState();
 }
 
 // 切换到上一个场景
@@ -533,6 +570,8 @@ function togglePlayPause() {
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
     }
+    // 暂停进度条
+    pauseProgressBar();
   }
   
   // 更新UI状态
@@ -559,55 +598,6 @@ function toggleSlowMode() {
 function replayScene() {
   // 重置到当前场景的开始
   switchToScene(playState.currentScene);
-}
-
-// 更新UI状态
-function updateUIState() {
-  if (!window.ponderButtonManager) return;
-  
-  // 更新播放/暂停按钮状态
-  const playPauseButton = document.getElementById('ponder-create-btn-play-pause');
-  if (playPauseButton) {
-    if (playState.isPlaying) {
-      playPauseButton.classList.remove('paused');
-      playPauseButton.querySelector('.ponder-button-tag').textContent = '暂停';
-    } else {
-      playPauseButton.classList.add('paused');
-      playPauseButton.querySelector('.ponder-button-tag').textContent = '播放';
-    }
-  }
-  
-  // 更新自动播放按钮状态
-  const autoPlayButton = document.getElementById('ponder-create-btn-auto-play');
-  if (autoPlayButton) {
-    if (playState.autoPlay) {
-      autoPlayButton.classList.add('active');
-    } else {
-      autoPlayButton.classList.remove('active');
-    }
-  }
-  
-  // 更新慢速模式按钮状态
-  const slowModeButton = document.getElementById('ponder-create-btn-slow-mode');
-  if (slowModeButton) {
-    if (playState.slowMode) {
-      slowModeButton.classList.add('active');
-    } else {
-      slowModeButton.classList.remove('active');
-    }
-  }
-  
-  // 更新进度条
-  if (window.ponderButtonManager && window.ponderButtonManager.updateProgressBar) {
-    window.ponderButtonManager.updateProgressBar(playState.progress);
-  }
-  
-  // 更新场景信息
-  if (window.ponderButtonManager && window.ponderButtonManager.updateSceneInfo) {
-    // 优先使用window.Process.sense.length，如果不存在则使用playState.scenes.length
-    const totalScenes = window.Process.sense ? window.Process.sense.length : sceneTotal;
-    window.ponderButtonManager.updateSceneInfo(playState.currentScene, totalScenes);
-  }
 }
 
 // 检查是否需要切换片段
@@ -908,12 +898,10 @@ class PonderButtonManager {
     developerModeUI.terminal(isActive);
   }
   
-  // 进度条控制
+  // 进度条控制 - 现在由CSS动画处理，此方法保留用于兼容性
   setProgress(percent) {
-    const progressFill = document.getElementById('ponder-create-progress-fill');
-    if (progressFill) {
-      progressFill.style.width = percent + '%';
-    }
+    // 不再需要手动设置进度，CSS动画会自动处理
+    // 保留此方法以确保兼容性
   }
   
   // 显示/隐藏用户模式按钮

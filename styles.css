@@ -578,6 +578,13 @@ main .outside-btn{
   left: 0;
   background-color: #0005;
   padding: 5px;
+  max-height: 95%;
+  overflow-y: auto;
+  scroll-behavior: smooth;
+  scrollbar-width: none;
+}
+#terminal::-webkit-scrollbar{
+  display: none;
 }
 
 
