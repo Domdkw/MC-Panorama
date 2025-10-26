@@ -165,11 +165,8 @@ MC-Panorama/
 ## 贡献指南
 
 我们欢迎所有形式的贡献！无论是提交Bug报告、功能请求，还是直接提交代码，都能帮助项目变得更好。
-1. Fork 本仓库
-2. 创建您的功能分支 (`git checkout -b feature/AmazingFeature`)
-3. 提交您的更改 (`git commit -m 'Add some AmazingFeature'`)
-4. 推送到分支 (`git push origin feature/AmazingFeature`)
-5. 创建一个Pull Request
+Fork 本仓库 or
+创建一个Pull Request
 ## 许可证
 
 本项目采用 **MIT许可证** - 详见 [LICENSE](LICENSE) 文件
