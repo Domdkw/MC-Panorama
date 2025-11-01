@@ -84,32 +84,32 @@ if(LS_accept && localStorage.getItem('sti')){
 
 //region language
 
-const lang_support = ["en-US","zh-TW","zh-CN"];
-let uselang = navLang;
-let langJson;
-if(lang_support.includes(navLang) && navLang !== 'zh-CN'){
+const supportedLanguages = ["en-US","zh-TW","zh-CN"];
+let currentLanguage = navLang;
+let languageData;
+if(supportedLanguages.includes(navLang) && navLang !== 'zh-CN'){
   window.onload = function(){
     fetch('./lang/' + navLang + '.json')
     .then(response => response.json())
     .then(data => {
-      langJson = Array.isArray(data)? data : [data];
-      handleLanguageData(langJson);
+      languageData = Array.isArray(data)? data : [data];
+      handleLanguageData(languageData);
     })
     .catch(error => console.error('Error fetching JSON:', error));
   }
 }
-function handleLanguageData(obj){
-  if (Array.isArray(obj) && obj.length > 0){
-    const dataObject = obj[0];
+function handleLanguageData(languageObject){
+  if (Array.isArray(languageObject) && languageObject.length > 0){
+    const dataObject = languageObject[0];
     for (const key in dataObject){
       if (dataObject.hasOwnProperty(key)){
         // 处理id属性
-        const lang_element = document.getElementById(key);
-        if (lang_element){
-          if (lang_element.tagName === 'INPUT'){
-            lang_element.value = dataObject[key];
+        const languageElement = document.getElementById(key);
+        if (languageElement){
+          if (languageElement.tagName === 'INPUT'){
+            languageElement.value = dataObject[key];
           } else{
-            lang_element.textContent = dataObject[key];
+            languageElement.textContent = dataObject[key];
           }
         }
         
@@ -128,58 +128,58 @@ function handleLanguageData(obj){
 }
 
 //language choose page
-const lang_choose_div = document.getElementById("lang-div");
-let spanId = navLang;
-if(!lang_support.includes(spanId)){
-  spanId = 'lang-unknown';
+const languageChooseDiv = document.getElementById("lang-div");
+let selectedLanguageId = navLang;
+if(!supportedLanguages.includes(selectedLanguageId)){
+  selectedLanguageId = 'lang-unknown';
 }
 function showlang(){
   title_main.style.display = "none";
-  lang_choose_div.style.display = "flex";
-  let current_langspan = document.getElementById(spanId);
-  current_langspan.classList.add('clicked');
+  languageChooseDiv.style.display = "flex";
+  let currentLanguageSpan = document.getElementById(selectedLanguageId);
+  currentLanguageSpan.classList.add('clicked');
   const languageList = document.querySelector('.language-list');
 
-  languageList.addEventListener('click', function (langspan) {
-    if (langspan.target.tagName === 'SPAN' && langspan.target.id !== 'lang-unknown') {
-      current_langspan.classList.remove('clicked');
-      spanId = langspan.target.id;
-      current_langspan = document.getElementById(spanId);
-      current_langspan.classList.add('clicked');
+  languageList.addEventListener('click', function (languageEvent) {
+    if (languageEvent.target.tagName === 'SPAN' && languageEvent.target.id !== 'lang-unknown') {
+      currentLanguageSpan.classList.remove('clicked');
+      selectedLanguageId = languageEvent.target.id;
+      currentLanguageSpan = document.getElementById(selectedLanguageId);
+      currentLanguageSpan.classList.add('clicked');
     }
   });
 }
 function hiddenlang(){
   title_main.style.display = "flex";
-  lang_choose_div.style.display = "none";
-  if(lang_support.includes(spanId) && spanId!== uselang){
-    terminal.innerHTML = '请求加载语言-'+spanId;
+  languageChooseDiv.style.display = "none";
+  if(supportedLanguages.includes(selectedLanguageId) && selectedLanguageId !== currentLanguage){
+    terminal.innerHTML = '请求加载语言-'+selectedLanguageId;
     
     // 检查该语言的存储是否已存在
-    let langStorageKey = 'lang_' + spanId;
-    let langDataExists = localStorage.getItem(langStorageKey) !== null;
+    let languageStorageKey = 'lang_' + selectedLanguageId;
+    let languageDataExists = localStorage.getItem(languageStorageKey) !== null;
     
-    fetch('./lang/' + spanId + '.json')
+    fetch('./lang/' + selectedLanguageId + '.json')
     .then(response => response.json())
     .then(data => {
-      langJson = Array.isArray(data)? data : [data];
-      handleLanguageData(langJson);
-      uselang = spanId;
+      languageData = Array.isArray(data)? data : [data];
+      handleLanguageData(languageData);
+      currentLanguage = selectedLanguageId;
       
       // 无论语言存储是否存在，都重新拉取数据并更新存储
-      localStorage.setItem(langStorageKey, JSON.stringify(langJson));
+      localStorage.setItem(languageStorageKey, JSON.stringify(languageData));
       
       // 如果是ooops支持的语言，也需要更新ooops数据
-        if(spanId === 'zh-CN' || spanId === 'en-US') {
+        if(selectedLanguageId === 'zh-CN' || selectedLanguageId === 'en-US') {
           // 如果当前已下载的语言与目标语言不同，则清除旧的ooops文本
-          let targetLang = sti_ooops_lang === "auto" ? spanId : sti_ooops_lang;
+          let targetOoopsLanguage = sti_ooops_lang === "auto" ? selectedLanguageId : sti_ooops_lang;
           
           // 如果用户选择的是"auto"，则根据当前选择的语言自动选择
-          if(targetLang === "auto") {
-            targetLang = spanId;
+          if(targetOoopsLanguage === "auto") {
+            targetOoopsLanguage = selectedLanguageId;
           }
           
-          if(DlOoops !== targetLang) {
+          if(DlOoops !== targetOoopsLanguage) {
             // 清除旧的ooops文本
             localStorage.removeItem('OoopsText');
           }
@@ -188,25 +188,25 @@ function hiddenlang(){
           if(sti_moreOoops) {
             (async () => {
               // 如果当前已下载的语言与目标语言不同，或者没有下载任何语言，则重新下载
-              if(DlOoops !== targetLang) {
-                let OoopsText = null;
+              if(DlOoops !== targetOoopsLanguage) {
+                let oopsTextData = null;
                 
                 // 根据目标语言加载对应的ooops文件
-                if(targetLang === 'zh-CN'){
-                  OoopsText = await loadFile('./assets/ooops/zh-CN.json','json',true,'获取zh-CN的ooops文件') || null;
-                } else if(targetLang === 'en-US'){
-                  OoopsText = await loadFile('./assets/ooops/en-US.json','json',true,'get en-US ooops file') || null;
+                if(targetOoopsLanguage === 'zh-CN'){
+                  oopsTextData = await loadFile('./assets/ooops/zh-CN.json','json',true,'获取zh-CN的ooops文件') || null;
+                } else if(targetOoopsLanguage === 'en-US'){
+                  oopsTextData = await loadFile('./assets/ooops/en-US.json','json',true,'get en-US ooops file') || null;
                 }
                 
-                if(OoopsText) {
-                  localStorage.setItem('OoopsText', JSON.stringify(OoopsText));
-                  DlOoops = targetLang; // 更新为当前下载的语言
+                if(oopsTextData) {
+                  localStorage.setItem('OoopsText', JSON.stringify(oopsTextData));
+                  DlOoops = targetOoopsLanguage; // 更新为当前下载的语言
                   localStorage.setItem('DlOoops', DlOoops); // 直接存储语言代码字符串
                   
                   // 更新页面上的ooops文本
-                  const ooopsInnerText = JSON.parse(localStorage.getItem('OoopsText'));
-                  if(ooopsInnerText){
-                    ooops.innerHTML = ooopsInnerText[Math.floor(Math.random() * ooopsInnerText.length)];
+                  const oopsInnerText = JSON.parse(localStorage.getItem('OoopsText'));
+                  if(oopsInnerText){
+                    ooops.innerHTML = oopsInnerText[Math.floor(Math.random() * oopsInnerText.length)];
                     ooops.style.right = `-${ooops.offsetWidth/3}px`;
                     ooops.style.fontSize = `${-0.6*ooops.textContent.length +35}px`;
                   }
@@ -216,10 +216,10 @@ function hiddenlang(){
           }
         }
       
-      terminal.innerHTML = '加载语言-'+spanId+'成功' + (langDataExists ? '（已更新存储）' : '');
+      terminal.innerHTML = '加载语言-'+selectedLanguageId+'成功' + (languageDataExists ? '（已更新存储）' : '');
     })
     .catch(error => {
-      terminal.innerHTML = '加载语言-'+spanId+'失败';
+      terminal.innerHTML = '加载语言-'+selectedLanguageId+'失败';
       console.error('Can not get language profile,Error:', error);
     });
   }

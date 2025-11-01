@@ -425,6 +425,18 @@ function fillfall(block, x1, y1, z1, x2, y2, z2, duration){
 
 // tip函数：在指定位置显示提示信息
 async function tip(x, y, z, text, color, duration) {
+  // 应用语言映射
+  let localizedText = text;
+  // 如果是字符串且不是HTML格式，尝试获取本地化文本
+  if (typeof text === 'string' && !text.includes('<')) {
+    // 调用vanilla.js中的getLocalizedText函数
+    if (typeof window.getLocalizedText === 'function') {
+      localizedText = window.getLocalizedText(text);
+    } else {
+      localizedText = text; // 如果函数不存在，使用原始文本
+    }
+  }
+  
   // 确保场景已初始化
   if (!scene) {
     console.error("Scene not initialized");
@@ -511,7 +523,7 @@ async function tip(x, y, z, text, color, duration) {
   // 2. 创建2D HTML内容
   const tipElement = document.createElement('div');
   tipElement.className = 'ponder-tip-progress';
-  tipElement.innerHTML = text;
+  tipElement.innerHTML = localizedText;
   tipElement.style.opacity = '0'; // 初始透明
   
   // 创建进度条
@@ -667,6 +679,18 @@ async function tip(x, y, z, text, color, duration) {
 
 // tiparea函数：在指定区域内显示提示信息
 async function tiparea(x1, y1, z1, x2, y2, z2, text, color, duration) {
+  // 应用语言映射
+  let localizedText = text;
+  // 如果是字符串且不是HTML格式，尝试获取本地化文本
+  if (typeof text === 'string' && !text.includes('<')) {
+    // 调用vanilla.js中的getLocalizedText函数
+    if (typeof window.getLocalizedText === 'function') {
+      localizedText = window.getLocalizedText(text);
+    } else {
+      localizedText = text; // 如果函数不存在，使用原始文本
+    }
+  }
+  
   // 确保场景已初始化
   if (!scene) {
     console.error("Scene not initialized");
@@ -770,7 +794,7 @@ async function tiparea(x1, y1, z1, x2, y2, z2, text, color, duration) {
   // 2. 创建2D HTML内容
   const tipElement = document.createElement('div');
   tipElement.className = 'ponder-tip-progress';
-  tipElement.innerHTML = text;
+  tipElement.innerHTML = localizedText;
   tipElement.style.opacity = '0'; // 初始透明
   
   // 创建进度条

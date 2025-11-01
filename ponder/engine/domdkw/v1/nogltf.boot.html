@@ -235,23 +235,31 @@
         width: 0%;
         height: 100%;
         background-color: white;
-        transition: width linear;
+        transition: width ease-in-out;
     }
 </style>
 <script>
   //替换console.log到terminal, 并添加时间戳,同时显示在控制台
   const originalConsoleLog = console.log;
+  const originalConsoleWarn = console.warn;
+  const originalConsoleError = console.error;
   console.log = function(...arg) {
     originalConsoleLog.apply(console, arg);
     terminal.innerHTML += `[${new Date().toLocaleTimeString()}] ${arg.map(item => item.toString()).join(' ')}<br>`;
     //将terminal滚动条滚到最底下
     terminal.scrollTop = terminal.scrollHeight;
   };
-  for (let i = 0; i < Process.loader.engine.length; i++) {
-      const engine = Process.loader.engine[i];
-      console.log('加载engine:', engine);
-      loadFile('/ponder/engine/'+engine, 'js', true);
-  }
+  console.warn = function(...arg) {
+    originalConsoleWarn.apply(console, arg);
+    terminal.innerHTML += `<span style="color: #FFA500;">[${new Date().toLocaleTimeString()}] ${arg.map(item => item.toString()).join(' ')}<br></span>`;
+    terminal.scrollTop = terminal.scrollHeight;
+  };
+  console.error = function(...arg) {
+    originalConsoleError.apply(console, arg);
+    terminal.innerHTML += `<span style="color: #FF0000;">[${new Date().toLocaleTimeString()}] ${arg.map(item => item.toString()).join(' ')}<br></span>`;
+    terminal.scrollTop = terminal.scrollHeight;
+  };
+  loadFile('/ponder/engine/domdkw/v1/vanilla.js', 'js', true,'加载engine:vanilla.js');
   function loadTHREECSS2DRenderer() {
     return new Promise(async (resolve, reject) => {
       const {loadstate, loadinfo, rangeblock} = SNLB('CSS2DRenderer', true);

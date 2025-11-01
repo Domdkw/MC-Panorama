@@ -72,8 +72,258 @@ const TextureLoader = new THREE.TextureLoader(LoadingManager);
 // 资源加载与管理
 // ========================================
 
+// 语言映射辅助函数
+window.getLocalizedText = function(textKey) {
+  // 获取当前选择的语言
+  let currentLanguage = 'en-US'; // 默认语言
+  
+  // 尝试从 page.js 获取选择的语言
+  if (typeof selectedLanguageId !== 'undefined') {
+    currentLanguage = selectedLanguageId;
+  }
+  
+  // 检查是否有语言配置
+  if (!window.Process || !window.Process.lang) {
+    console.warn(`[Language] No language configuration found, returning original text: "${textKey}"`);
+    return textKey; // 如果没有语言配置，返回原始文本
+  }
+  
+  // 语言匹配辅助函数
+  function findBestLanguageMatch(availableLanguages, targetLanguage) {
+    // 1. 尝试直接匹配
+    if (availableLanguages.includes(targetLanguage)) {
+      return targetLanguage;
+    }
+    
+    // 2. 尝试匹配语言前缀（如 zh-tw 匹配 zh）
+    const targetPrefix = targetLanguage.split('-')[0].toLowerCase();
+    for (const lang of availableLanguages) {
+      if (lang.split('-')[0].toLowerCase() === targetPrefix) {
+        console.log(`[Language] Prefix match found: "${lang}" matches prefix "${targetPrefix}"`);
+        return lang;
+      }
+    }
+    
+    // 3. 尝试匹配 en-US 作为回退
+    if (availableLanguages.includes('en-US')) {
+      console.log(`[Language] Using fallback language "en-US"`);
+      return 'en-US';
+    }
+    
+    // 4. 使用第一个可用语言
+    if (availableLanguages.length > 0) {
+      console.log(`[Language] Using first available language: "${availableLanguages[0]}"`);
+      return availableLanguages[0];
+    }
+    
+    return null;
+  }
+  
+  // 优先从内嵌的语言映射中查找
+  if (window.Process.lang.embed) {
+    const langEmbed = window.Process.lang.embed;
+    const availableLanguages = Object.keys(langEmbed);
+    
+    const matchedLanguage = findBestLanguageMatch(availableLanguages, currentLanguage);
+    
+    // 如果找到了匹配的语言且文本键存在，返回本地化文本
+    if (matchedLanguage && langEmbed[matchedLanguage] && langEmbed[matchedLanguage][textKey]) {
+      const localizedText = langEmbed[matchedLanguage][textKey];
+      console.log(`[Language] Found embedded text for key "${textKey}" in language "${matchedLanguage}": "${localizedText}"`);
+      return localizedText;
+    } else {
+      console.log(`[Language] Text key "${textKey}" not found in embedded language "${matchedLanguage || 'none'}"`);
+    }
+  }
+  
+  // 如果内嵌中没有对应的键，尝试从 lang.url 获取语言映射
+  if (window.Process.lang.url) {
+    // 检查是否已经缓存了 URL 语言数据
+    if (window.Process.lang.urlCache) {
+      const urlLangs = Object.keys(window.Process.lang.urlCache);
+      
+      const matchedLang = findBestLanguageMatch(urlLangs, currentLanguage);
+      
+      // 如果找到了匹配的语言且文本键存在，返回本地化文本
+      if (matchedLang && window.Process.lang.urlCache[matchedLang] && window.Process.lang.urlCache[matchedLang][textKey]) {
+        const localizedText = window.Process.lang.urlCache[matchedLang][textKey];
+        console.log(`[Language] Found URL text for key "${textKey}" in language "${matchedLang}": "${localizedText}"`);
+        return localizedText;
+      } else {
+        console.log(`[Language] Text key "${textKey}" not found in URL language "${matchedLang || 'none'}"`);
+      }
+    } else {
+      console.warn(`[Language] URL language cache is empty, trying to load data`);
+      // 尝试动态加载当前语言的数据
+      if (typeof loadUrlLanguageData === 'function') {
+        // 同步加载语言数据
+        loadUrlLanguageData().then(() => {
+          // 加载完成后，重新调用函数获取本地化文本
+          return window.getLocalizedText(textKey);
+        }).catch(error => {
+          console.error(`[Language] Failed to load language data:`, error);
+          // 不抛出错误，只记录错误信息，程序继续运行
+        });
+        // 返回原始文本，因为异步加载需要时间
+        return textKey;
+      }
+    }
+  } else {
+    console.log(`[Language] No URL language data configured`);
+  }
+  
+  // 如果没有找到任何本地化文本，返回原始文本
+  console.warn(`[Language] No localized text found for key "${textKey}", returning original text`);
+  return textKey;
+};
+
+// 加载URL语言数据的函数
+window.loadUrlLanguageData = async function() {
+  if (!window.Process || !window.Process.lang || !window.Process.lang.url) {
+    return; // 如果没有URL，则不加载
+  }
+  
+  try {
+    // 初始化缓存
+    if (!window.Process.lang.urlCache) {
+      window.Process.lang.urlCache = {};
+      console.log('[Language] Initialized URL language cache');
+    }
+    
+    // 获取当前选择的语言
+    const currentLanguage = window.selectedLanguageId || 'en-US';
+    console.log(`[Language] Loading language data for "${currentLanguage}"`);
+    
+    // 从dirt.json中的语言配置获取语言文件路径
+    let url;
+    if (window.Process.lang.url && window.Process.lang.url[currentLanguage]) {
+      // 如果有特定语言的URL，使用该URL
+      url = window.Process.lang.url[currentLanguage];
+      console.log(`[Language] Using specific URL for "${currentLanguage}": ${url}`);
+    } else {
+      // 否则使用基础URL加上语言代码
+      const baseUrl = window.Process.lang.url;
+      url = `${baseUrl}/${currentLanguage}.json`;
+      console.log(`[Language] Using constructed URL for "${currentLanguage}": ${url}`);
+    }
+    
+    // 如果已经缓存了当前语言的数据，则不再加载
+    if (window.Process.lang.urlCache[currentLanguage]) {
+      return;
+    }
+    
+    // 获取语言数据
+    const response = await fetch(url);
+    if (response.ok) {
+      const langData = await response.json();
+      window.Process.lang.urlCache[currentLanguage] = langData;
+      console.log(`[Language] Successfully loaded language data for "${currentLanguage}" from URL`);
+      console.log(`[Language] Available keys in loaded data: ${Object.keys(langData).join(', ')}`);
+    } else {
+      console.error(`[Language] Failed to load language data from ${url}: HTTP ${response.status} ${response.statusText}`);
+      // 不抛出错误，只记录错误信息，程序继续运行
+    }
+  } catch (error) {
+    console.error('[Language] Failed to load language data from URL:', error);
+    // 不抛出错误，只记录错误信息，程序继续运行
+  }
+};
+
+// 加载单个语言数据的辅助函数
+window.loadSingleLanguageData = async function(languageCode) {
+  if (!window.Process || !window.Process.lang || !window.Process.lang.url) {
+    return;
+  }
+  
+  // 如果已经缓存了该语言的数据，则不再加载
+  if (window.Process.lang.urlCache[languageCode]) {
+    console.log(`[Language] Language data for "${languageCode}" already cached, skipping preload`);
+    return;
+  }
+  
+  try {
+    // 从dirt.json中的语言配置获取语言文件路径
+    let url;
+    if (window.Process.lang.url && window.Process.lang.url[languageCode]) {
+      // 如果有特定语言的URL，使用该URL
+      url = window.Process.lang.url[languageCode];
+      console.log(`[Language] Using specific URL for "${languageCode}": ${url}`);
+    } else {
+      // 否则使用基础URL加上语言代码
+      const baseUrl = window.Process.lang.url;
+      url = `${baseUrl}/${languageCode}.json`;
+      console.log(`[Language] Using constructed URL for "${languageCode}": ${url}`);
+    }
+    
+    console.log(`[Language] Preloading language data for "${languageCode}" from: ${url}`);
+    
+    // 获取语言数据
+    const response = await fetch(url);
+    if (response.ok) {
+      const langData = await response.json();
+      window.Process.lang.urlCache[languageCode] = langData;
+      console.log(`[Language] Successfully preloaded language data for "${languageCode}"`);
+      console.log(`[Language] Available keys in preloaded data: ${Object.keys(langData).join(', ')}`);
+    } else {
+      console.error(`[Language] Failed to preload language data from ${url}: HTTP ${response.status} ${response.statusText}`);
+      // 不抛出错误，只记录错误信息，程序继续运行
+    }
+  } catch (error) {
+    console.error(`[Language] Failed to preload language data for "${languageCode}":`, error);
+    // 不抛出错误，只记录错误信息，程序继续运行
+  }
+};
+
+// 预加载所有可用语言数据的函数
+window.preloadAllLanguageData = async function() {
+  if (!window.Process || !window.Process.lang || !window.Process.lang.url) {
+    console.log('[Language] No URL language data configured, skipping preload');
+    return; // 如果没有URL，则不加载
+  }
+  
+  console.log('[Language] Starting preload of all language data');
+  
+  // 初始化缓存
+  if (!window.Process.lang.urlCache) {
+    window.Process.lang.urlCache = {};
+    console.log('[Language] Initialized URL language cache for preload');
+  }
+  
+  // 获取当前选择的语言
+  const currentLanguage = window.selectedLanguageId || 'en-US';
+  
+  // 从dirt.json中的语言配置获取需要预加载的语言列表
+  let languagesToPreload = [];
+  
+  if (window.Process && window.Process.lang && window.Process.lang.available) {
+    // 如果有可用语言列表，使用该列表
+    languagesToPreload = window.Process.lang.available;
+    console.log('[Language] Using available languages from dirt.json:', languagesToPreload);
+  } else if (window.Process.lang.embed) {
+    // 否则使用嵌入语言数据中的语言
+    languagesToPreload = Object.keys(window.Process.lang.embed);
+    console.log('[Language] Using embedded languages:', languagesToPreload);
+  }
+  
+  // 确保包含当前语言和英语作为回退
+  if (!languagesToPreload.includes(currentLanguage)) {
+    languagesToPreload.push(currentLanguage);
+  }
+  if (!languagesToPreload.includes('en-US')) {
+    languagesToPreload.push('en-US');
+  }
+  
+  // 预加载所有语言
+  for (const lang of languagesToPreload) {
+    await loadSingleLanguageData(lang);
+  }
+  
+  console.log('[Language] Completed preload of all language data');
+};
+
 // 主要逻辑初始化
-(async()=>{//等待THREE.LoadingManager加载完成
+(async () => {
+  //等待THREE.LoadingManager加载完成
   const index = window.Process.loader.indexes;
   if (!index) return;
   let [, mtm, command] = await Promise.all([
@@ -82,6 +332,12 @@ const TextureLoader = new THREE.TextureLoader(LoadingManager);
     loadFile('/ponder/engine/domdkw/v1/command.js', 'js', true, '<span class="file-tag mr y">vanilla.js</span>=><span class="file-tag mr ml y">command.js</span>加载命令文件')
   ]);
   window.MCTextureMap = mtm;
+  
+  // 预加载语言数据
+  if(typeof window.preloadAllLanguageData === 'function') {
+    window.preloadAllLanguageData();
+  }
+  
   startPreload();
 })();
 
@@ -889,19 +1145,13 @@ class PonderButtonManager {
       progressText.textContent = `${Math.round(progress * 100)}%`;
     }
   }
-  
+  //通过CSS class检查
   toggleDeveloperMode() {
     const developerModeButton = document.getElementById('ponder-create-btn-developer-mode');
     const isActive = developerModeButton.classList.contains('active');
     developerModeButton.classList.toggle('active');
     developerModeButton.querySelector('.ponder-button-tag').textContent = isActive ? '切换为开发者' : '切换为用户';
     developerModeUI.terminal(isActive);
-  }
-  
-  // 进度条控制 - 现在由CSS动画处理，此方法保留用于兼容性
-  setProgress(percent) {
-    // 不再需要手动设置进度，CSS动画会自动处理
-    // 保留此方法以确保兼容性
   }
   
   // 显示/隐藏用户模式按钮
