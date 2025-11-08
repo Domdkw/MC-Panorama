@@ -8,7 +8,7 @@
   <style>body{margin: 0;} canvas{position: fixed;filter: contrast(1.6);}</style>
   <link rel="stylesheet" href="styles.css" />
   <link rel="icon" href="./assets/page/Dragon_Head_JE1_BE1.png">
-  <style>.load{z-index:100;background-color:#d10000;opacity:1;transition:opacity 1s ease-in-out;display:flex;justify-content:center;align-items:center;flex-direction:column}.loadstate{width:65%;margin-top:.6rem;padding:.4rem 10px 5px 10px;font-weight:bolder;transition:all .5s ease-in-out}.loadinfo{color:white;font-size:18px}.loadstate .rangebox{height:16px;border:3px solid white;margin-top:5px;padding:3px}.loadstate .rangeblock{transition:width .5s ease-in-out;width:0;height:100%;background-color:white}.bugjump{width:70%;margin-bottom:1rem}.compatibility-warning{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.9);z-index:9999;color:white;display:none;justify-content:center;align-items:center;text-align:center;padding:20px}.compatibility-warning.show{display:flex}.warning-box{max-width:450px;background-color:#222;padding:25px;border:2px solid #ff4444}.warning-title{color:#ff4444;margin-bottom:15px;font-size:20px}.warning-desc{margin-bottom:15px;line-height:1.5}.warning-list{text-align:left;margin-bottom:20px;line-height:1.6}.warning-button{background:none;color:white;border:2px solid gray;padding:10px 20px;cursor:pointer;font-size:16px}</style>
+  <style>.load{z-index:100;background-color:#3f4549;opacity:1;transition:opacity 1s ease-in-out;display:flex;justify-content:center;align-items:center;flex-direction:column}.loadstate{margin-top:.6rem;padding:.4rem 10px 5px 10px;font-weight:bolder;transition:all .5s ease-in-out}.loadinfo{color:white;font-size:18px}.loadstate .rangebox{height:16px;border:3px solid white;margin-top:5px;padding:3px}.loadstate .rangeblock{transition:width .5s ease-in-out;width:0;height:100%;background-color:white}.bugjump{width:70%;margin-bottom:1rem}.compatibility-warning{position:fixed;top:0;left:0;width:100%;height:100%;background-color:rgba(0,0,0,.9);z-index:9999;color:white;display:none;justify-content:center;align-items:center;text-align:center;padding:20px}.compatibility-warning.show{display:flex}.warning-box{max-width:450px;background-color:#222;padding:25px;border:2px solid #ff4444}.warning-title{color:#ff4444;margin-bottom:15px;font-size:20px}.warning-desc{margin-bottom:15px;line-height:1.5}.warning-list{text-align:left;margin-bottom:20px;line-height:1.6}.warning-button{background:none;color:white;border:2px solid gray;padding:10px 20px;cursor:pointer;font-size:16px}</style>
   <script type="importmap">
       {
           "imports": {
@@ -19,7 +19,7 @@
   </script>
 </head>
 <body>
-  <section class="load abso"><img class="bugjump" src="./assets/page/bugjump.png" alt="BUGJUMP"></img></section>
+  <section class="load abso"><div><img src="./assets/page/web-ponder_icon-78x78.png" alt="web-ponder-icon"></div><div class="loadbox" style="width:65%;"></div></section>
   <!-- 兼容性警告 -->
   <section id="compatibility-warning" class="compatibility-warning">
     <div class="warning-box">
@@ -235,10 +235,10 @@
   <script>
     //api
     const navLang = navigator.language;
-    const body = document.body;
     const terminal = document.getElementById('terminal')
-    let fileLoaded = 0;
+    let fileLoaded = {};
     const loadingDiv = document.querySelector('.load');
+    const loadBox = document.querySelector('.loadbox');
     function SNLB(i, range){//setNewLoadBlock
       const loadstate = document.createElement('div');
       loadstate.classList.add('loadstate');
@@ -247,7 +247,7 @@
       }else{
         loadstate.innerHTML = '<h class="loadinfo"></h>';
       }
-      loadingDiv.appendChild(loadstate);
+      loadBox.appendChild(loadstate);
       const loadinfo = loadstate.querySelector('.loadinfo');
       const rangeblock = loadstate.querySelector('.rangeblock') || null;
       loadstate.id = i;
@@ -352,16 +352,7 @@
         }
       });
     }
-    let sound_enable = false;
-    document.querySelector('.sound_range_div').addEventListener('click', ()=>{//侦听点击
-      if (sound_enable) return;
-      sound_enable = true;
-      document.getElementById('sound_state').textContent = 'Loading';
-      terminal.innerHTML = '加载音乐脚本文件(playsound.js)';
-      const script = document.createElement('script');
-      script.src = './playsound.js';
-      document.body.appendChild(script);
-    })
+    // 音乐功能已合并到page.js中，无需单独加载playsound.js
     const service_provider = '<a href="https://www.netlify.com"><img src="https://www.netlify.com/assets/badges/netlify-badge-color-accent.svg" alt="Deploys by Netlify" /></a><a class="badge" href="https://www.jsdelivr.com/package/npm/three" title="jsDelivr monthly hits"><img alt="jsDelivr 每月点击徽章" src="https://data.jsdelivr.com/v1/package/npm/three/badge"></a><a class="main-logo" href="https://www.jsdelivr.com" title="jsDelivr"><img width="140" height="34" title="jsDelivr" src="https://www.jsdelivr.com/assets/f14dc4533f22bdb854b88e243bdbaa447249ae7a/img/jsdelivr-horizontal-regular.svg"></a><br><img alt="GitHub commit activity" src="https://img.shields.io/github/commit-activity/t/Domdkw/MC-Panorama"><img alt="GitHub last commit" src="https://img.shields.io/github/last-commit/Domdkw/MC-Panorama"><img alt="GitHub License" src="https://img.shields.io/github/license/Domdkw/MC-Panorama">';
   </script>
   <script type="module">
@@ -377,7 +368,7 @@
         loadstate.style.backgroundColor = '#fff6';
         //加载mc-panorama
         await loadFile('mc-background.js', 'js', true, '加载mc-panorama<span class="file-tag y ml">mc-background.js</span>')
-        setTimeout(() => {
+        setTimeout(async () => {
           loadMcPanorama();
           checkHref();
           //create()

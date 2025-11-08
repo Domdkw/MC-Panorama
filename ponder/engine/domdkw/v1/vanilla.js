@@ -194,34 +194,68 @@ window.loadUrlLanguageData = async function() {
     const currentLanguage = window.selectedLanguageId || 'en-US';
     console.log(`[Language] Loading language data for "${currentLanguage}"`);
     
-    // 从dirt.json中的语言配置获取语言文件路径
-    let url;
-    if (window.Process.lang.url && window.Process.lang.url[currentLanguage]) {
-      // 如果有特定语言的URL，使用该URL
-      url = window.Process.lang.url[currentLanguage];
-      console.log(`[Language] Using specific URL for "${currentLanguage}": ${url}`);
+    // 检查是否为"all"配置
+    if (window.Process.lang.url.all) {
+      console.log('[Language] Detected "all" configuration, loading combined language file');
+      
+      // 如果已经缓存了所有语言数据，则不再加载
+      if (Object.keys(window.Process.lang.urlCache).length > 0) {
+        console.log('[Language] Combined language data already cached, skipping load');
+        return;
+      }
+      
+      // 加载包含所有语言数据的单一文件
+      const url = window.Process.lang.url.all;
+      console.log(`[Language] Loading combined language data from: ${url}`);
+      
+      const response = await fetch(url);
+      if (response.ok) {
+        const allLangData = await response.json();
+        
+        // 将数据按语言代码拆分到缓存中
+        for (const [langCode, langData] of Object.entries(allLangData)) {
+          if (typeof langData === 'object' && langData !== null) {
+            window.Process.lang.urlCache[langCode] = langData;
+            console.log(`[Language] Loaded language data for "${langCode}" from combined file`);
+            console.log(`[Language] Available keys in "${langCode}": ${Object.keys(langData).join(', ')}`);
+          }
+        }
+        
+        console.log('[Language] Successfully loaded all language data from combined file');
+      } else {
+        console.error(`[Language] Failed to load combined language data from ${url}: HTTP ${response.status} ${response.statusText}`);
+        // 不抛出错误，只记录错误信息，程序继续运行
+      }
     } else {
-      // 否则使用基础URL加上语言代码
-      const baseUrl = window.Process.lang.url;
-      url = `${baseUrl}/${currentLanguage}.json`;
-      console.log(`[Language] Using constructed URL for "${currentLanguage}": ${url}`);
-    }
-    
-    // 如果已经缓存了当前语言的数据，则不再加载
-    if (window.Process.lang.urlCache[currentLanguage]) {
-      return;
-    }
-    
-    // 获取语言数据
-    const response = await fetch(url);
-    if (response.ok) {
-      const langData = await response.json();
-      window.Process.lang.urlCache[currentLanguage] = langData;
-      console.log(`[Language] Successfully loaded language data for "${currentLanguage}" from URL`);
-      console.log(`[Language] Available keys in loaded data: ${Object.keys(langData).join(', ')}`);
-    } else {
-      console.error(`[Language] Failed to load language data from ${url}: HTTP ${response.status} ${response.statusText}`);
-      // 不抛出错误，只记录错误信息，程序继续运行
+      // 原有的单个语言文件加载逻辑
+      let url;
+      if (window.Process.lang.url && window.Process.lang.url[currentLanguage]) {
+        // 如果有特定语言的URL，使用该URL
+        url = window.Process.lang.url[currentLanguage];
+        console.log(`[Language] Using specific URL for "${currentLanguage}": ${url}`);
+      } else {
+        // 否则使用基础URL加上语言代码
+        const baseUrl = window.Process.lang.url;
+        url = `${baseUrl}/${currentLanguage}.json`;
+        console.log(`[Language] Using constructed URL for "${currentLanguage}": ${url}`);
+      }
+      
+      // 如果已经缓存了当前语言的数据，则不再加载
+      if (window.Process.lang.urlCache[currentLanguage]) {
+        return;
+      }
+      
+      // 获取语言数据
+      const response = await fetch(url);
+      if (response.ok) {
+        const langData = await response.json();
+        window.Process.lang.urlCache[currentLanguage] = langData;
+        console.log(`[Language] Successfully loaded language data for "${currentLanguage}" from URL`);
+        console.log(`[Language] Available keys in loaded data: ${Object.keys(langData).join(', ')}`);
+      } else {
+        console.error(`[Language] Failed to load language data from ${url}: HTTP ${response.status} ${response.statusText}`);
+        // 不抛出错误，只记录错误信息，程序继续运行
+      }
     }
   } catch (error) {
     console.error('[Language] Failed to load language data from URL:', error);
@@ -233,6 +267,12 @@ window.loadUrlLanguageData = async function() {
 window.loadSingleLanguageData = async function(languageCode) {
   if (!window.Process || !window.Process.lang || !window.Process.lang.url) {
     return;
+  }
+  
+  // 检查是否为"all"配置
+  if (window.Process.lang.url.all) {
+    console.log(`[Language] "all" configuration detected, skipping individual preload for "${languageCode}"`);
+    return; // 在"all"配置下，单个语言预加载不需要执行
   }
   
   // 如果已经缓存了该语言的数据，则不再加载
@@ -289,7 +329,47 @@ window.preloadAllLanguageData = async function() {
     console.log('[Language] Initialized URL language cache for preload');
   }
   
-  // 获取当前选择的语言
+  // 检查是否为"all"配置
+  if (window.Process.lang.url.all) {
+    console.log('[Language] "all" configuration detected, loading combined language file for preload');
+    
+    // 如果已经缓存了数据，则不再加载
+    if (Object.keys(window.Process.lang.urlCache).length > 0) {
+      console.log('[Language] Combined language data already cached, skipping preload');
+      return;
+    }
+    
+    // 加载包含所有语言数据的单一文件
+    const url = window.Process.lang.url.all;
+    console.log(`[Language] Preloading combined language data from: ${url}`);
+    
+    try {
+      const response = await fetch(url);
+      if (response.ok) {
+        const allLangData = await response.json();
+        
+        // 将数据按语言代码拆分到缓存中
+        for (const [langCode, langData] of Object.entries(allLangData)) {
+          if (typeof langData === 'object' && langData !== null) {
+            window.Process.lang.urlCache[langCode] = langData;
+            console.log(`[Language] Preloaded language data for "${langCode}" from combined file`);
+          }
+        }
+        
+        console.log('[Language] Successfully preloaded all language data from combined file');
+      } else {
+        console.error(`[Language] Failed to preload combined language data from ${url}: HTTP ${response.status} ${response.statusText}`);
+        // 不抛出错误，只记录错误信息，程序继续运行
+      }
+    } catch (error) {
+      console.error('[Language] Failed to preload combined language data:', error);
+      // 不抛出错误，只记录错误信息，程序继续运行
+    }
+    
+    return; // 在"all"配置下，不需要执行原有的预加载逻辑
+  }
+  
+  // 原有的单个语言文件预加载逻辑
   const currentLanguage = window.selectedLanguageId || 'en-US';
   
   // 从dirt.json中的语言配置获取需要预加载的语言列表

@@ -30,7 +30,7 @@ CreatePage.innerHTML = `
   </table>
 </div>
 `;
-body.appendChild(CreatePage);
+document.body.appendChild(CreatePage);
 
 if (UPpu1) {
   processURL = UPpu1;
@@ -157,9 +157,7 @@ function sf (n){
 
 async function ponderApiLoad() {
   //先清除前面的打印
-  while(loadingDiv.children.length > 1){
-    loadingDiv.children[1].remove();
-  }
+  loadBox.innerHTML = '';
   //渐显加载界面100ms
   loadingDiv.style.display = 'flex';
   setTimeout(() => {

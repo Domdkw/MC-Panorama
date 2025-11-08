@@ -135,7 +135,7 @@ function loadMcPanorama() {
     camera.updateProjectionMatrix();
     renderer.setSize(window.innerWidth, window.innerHeight);
   }
-  body.appendChild(renderer.domElement);
+  document.body.appendChild(renderer.domElement);
   //加载进度条
   tli.innerHTML = 'loading texture... ';
   trb.style.width = '0%';
@@ -146,7 +146,7 @@ function loadMcPanorama() {
   const textureLoader = new THREE.TextureLoader();
   
   // 添加全局变量来跟踪加载进度
-  window.imageLoadProgress = {
+  fileLoaded.imageLoadProgress = {
     loaded: 0,
     total: 0,
     completed: 0,
@@ -236,7 +236,7 @@ function loadMcPanorama() {
   
   // 更新总进度的函数
   function updateTotalProgress() {
-    const progress = window.imageLoadProgress;
+    const progress = fileLoaded.imageLoadProgress;
     const totalPercent = progress.total > 0 ? (progress.loaded / progress.total) * 100 : 0;
     const roundedPercent = Math.round(totalPercent);
     
@@ -288,8 +288,8 @@ function loadMcPanorama() {
       const sizes = await Promise.all(imageUrls.map(url => getImageSize(url).catch(() => 0)));
       
       // 初始化进度跟踪
-      window.imageLoadProgress.total = sizes.reduce((sum, size) => sum + size, 0);
-      window.imageLoadProgress.images = imageUrls.map((url, index) => ({
+      fileLoaded.imageLoadProgress.total = sizes.reduce((sum, size) => sum + size, 0);
+      fileLoaded.imageLoadProgress.images = imageUrls.map((url, index) => ({
         url,
         size: sizes[index],
         loaded: 0
@@ -346,17 +346,17 @@ function loadMcPanorama() {
           updateMaterialTexture(materials[i], img, i);
           
           // 更新进度
-          window.imageLoadProgress.images[i].loaded = window.imageLoadProgress.images[i].size;
-          window.imageLoadProgress.loaded = window.imageLoadProgress.images.reduce((sum, img) => sum + img.loaded, 0);
+          fileLoaded.imageLoadProgress.images[i].loaded = fileLoaded.imageLoadProgress.images[i].size;
+          fileLoaded.imageLoadProgress.loaded = fileLoaded.imageLoadProgress.images.reduce((sum, img) => sum + img.loaded, 0);
           updateTotalProgress();
           
           // 标记完成
-          window.imageLoadProgress.completed++;
-          const completedPercent = Math.round((window.imageLoadProgress.completed / 6) * 100);
-          tli.innerHTML = `loading texture... ${window.imageLoadProgress.completed}/6`;
+          fileLoaded.imageLoadProgress.completed++;
+          const completedPercent = Math.round((fileLoaded.imageLoadProgress.completed / 6) * 100);
+          tli.innerHTML = `loading texture... ${fileLoaded.imageLoadProgress.completed}/6`;
           trb.style.width = `${completedPercent}%`;
           
-          if(window.imageLoadProgress.completed === 6) {
+          if(fileLoaded.imageLoadProgress.completed === 6) {
             tls.style.backgroundColor = '#fff6';
             setTimeout(() => {
               loadingDiv.style.opacity = '0';
@@ -368,15 +368,15 @@ function loadMcPanorama() {
           },
           (progress) => {
             // 更新单个图片的加载进度
-            window.imageLoadProgress.images[i].loaded = progress.loaded;
-            window.imageLoadProgress.loaded = window.imageLoadProgress.images.reduce((sum, img) => sum + img.loaded, 0);
+            fileLoaded.imageLoadProgress.images[i].loaded = progress.loaded;
+            fileLoaded.imageLoadProgress.loaded = fileLoaded.imageLoadProgress.images.reduce((sum, img) => sum + img.loaded, 0);
             updateTotalProgress();
           },
           (error) => {
             console.error(`Failed to load image ${i}:`, error);
             // 标记为完成以避免阻塞
-            window.imageLoadProgress.completed++;
-            if(window.imageLoadProgress.completed === 6) {
+            fileLoaded.imageLoadProgress.completed++;
+            if(fileLoaded.imageLoadProgress.completed === 6) {
               tls.style.backgroundColor = '#fff6';
               setTimeout(() => {
                 loadingDiv.style.opacity = '0';
@@ -397,15 +397,16 @@ function loadMcPanorama() {
   }
   
   // 原始加载方式作为回退
+  fileLoaded.originalTextures = 0;//原始加载的纹理数量
   function loadMaterialsOriginal() {
     function loadMaterial(n) {
       const imgUrl = getImageUrl(n);
       return new THREE.MeshBasicMaterial({
         map: textureLoader.load(imgUrl, () => {
-          fileLoaded++;
-          tli.innerHTML = `loading texture... ${fileLoaded}/6`;
-          trb.style.width = `${(fileLoaded / 6) * 100}%`;
-          if(fileLoaded === 6) {
+          fileLoaded.originalTextures++;
+          tli.innerHTML = `loading texture... ${fileLoaded.originalTextures}/6`;
+          trb.style.width = `${(fileLoaded.originalTextures / 6) * 100}%`;
+          if(fileLoaded.originalTextures === 6) {
             tls.style.backgroundColor = '#fff6';
             setTimeout(() => {
               loadingDiv.style.opacity = '0';

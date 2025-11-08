@@ -34,6 +34,7 @@
     },
     "fragment":[
       [
+        "camera.position.set(12, 10, 10)",
         "moveCamera(true,-2,10,14,10)",
         "setblockfall('minecraft:bedrock',0,0,0,1)",
         "setblockfall('minecraft:bedrock',1,0,0,1)",
