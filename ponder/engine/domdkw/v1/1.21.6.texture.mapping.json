@@ -127,6 +127,14 @@
         "type":6,
         "map":"block/deepslate_coal_ore.png"
     },
+    "minecraft:snow":{
+        "type":6,
+        "map":"block/snow.png"
+    },
+    "minecraft:clay":{
+        "type":6,
+        "map":"block/clay.png"
+    },
 
     "minecraft:grass":{
         "type":"x",

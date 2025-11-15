@@ -465,11 +465,21 @@ function loadMcPanorama() {
   // 相机设置
   camera.position.z = 1.5;
 
+  // 获取用户设置的帧率限制，默认为30帧
+  const targetFPS = typeof sti_panorama_fps !== 'undefined' ? parseInt(sti_panorama_fps) : 30;
+  const frameInterval = 1000 / targetFPS; // 计算每帧之间的时间间隔（毫秒）
+  let lastFrameTime = 0;
+
   // 计划动画
-  const animate = () => {
+  const animate = (timestamp) => {
     requestAnimationFrame(animate);
     camera.rotation.y -= velocity;
-    renderer.render(scene, camera);
+    
+    // 帧率限制逻辑
+    if (timestamp - lastFrameTime >= frameInterval) {
+      renderer.render(scene, camera);
+      lastFrameTime = timestamp;
+    }
   };
 
   animate();

@@ -177,6 +177,15 @@
                 <option value="Infinite Amethyst - Lena Raine、Minecraft.mp3">Infinite Amethyst</option>
               </select>
             </div>
+            <div id="sti-panorama-fps" class="setting-item select" data-type="select">
+              <span class="setting-label">限制全景图帧数</span>
+              <select name="panorama-fps-select">
+                <option value="10">10帧</option>
+                <option value="30" selected>30帧</option>
+                <option value="60">60帧</option>
+                <option value="120">120帧</option>
+              </select>
+            </div>
           </div>
           <div class="setting-div Browser">
             <div class="sti-LS-div setting-child sti-LS-info-sti">
@@ -357,7 +366,7 @@
   </script>
   <script type="module">
     async function loadTHREE() {
-      loadFile('page.js', 'js', true, '加载必要界面脚本<span class="file-tag y ml">page.js</span>')
+      loadFile('page.js', 'js', true, '加载必要界面脚本<span class="file-tag y ml">page.js</span>');
       const {loadstate, loadinfo, rangeblock} = SNLB('three', true);
       loadinfo.innerHTML = 'Loading the <span class="file-tag y">three@0.174.0.js</span> module...';
       const module = await import('three');
@@ -367,7 +376,7 @@
         rangeblock.style.width = '100%';
         loadstate.style.backgroundColor = '#fff6';
         //加载mc-panorama
-        await loadFile('mc-background.js', 'js', true, '加载mc-panorama<span class="file-tag y ml">mc-background.js</span>')
+        await loadFile('mc-background.js', 'js', true, '加载mc-panorama<span class="file-tag y ml">mc-background.js</span>').then(loadBox.innerHTML='');
         setTimeout(async () => {
           loadMcPanorama();
           checkHref();

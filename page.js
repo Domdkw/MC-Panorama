@@ -6,6 +6,7 @@ let sti_panorama = "none"; // 新增：存储用户选择的全景图
 let sti_ooops_lang = "auto"; // 新增：存储用户选择的ooops语言
 let sti_audio_file = 'random';// 全局变量用于存储音频文件设置
 let sti_showConsole = true; // 新增：存储用户选择的显示控制台选项
+let sti_panorama_fps = "30"; // 新增：存储用户选择的全景图帧数限制
 //sti let end
 //自动应用LS信息25.7.31
 if(LS_accept && localStorage.getItem('sti')){
@@ -16,6 +17,7 @@ if(LS_accept && localStorage.getItem('sti')){
       case 'sti-panorama':sti_panorama = i.value;break; // 新增：加载用户选择的全景图
       case 'sti-ooops-lang':sti_ooops_lang = i.value;break; // 新增：加载用户选择的ooops语言
       case 'sti-showConsole':sti_showConsole = i.value;break; // 新增：加载用户选择的显示控制台选项
+      case 'sti-panorama-fps':sti_panorama_fps = i.value;break; // 新增：加载用户选择的全景图帧数限制
     }
   });
 }
@@ -482,7 +484,7 @@ function create(){
   css.rel = 'stylesheet';
   document.body.appendChild(css);
   //追加脚本（无加载屏幕）
-  terminal.innerHTML += '加载ponder界面渲染脚本(/ponder/index.js) =>插入body<br>加载表格样式表./chest.css';
+  terminal.innerHTML += '加载ponder界面渲染脚本(/ponder/index.js) =>插入body<br>加载表格样式表./chest.css<br>';
   const script = document.createElement('script');
   script.src = './ponder/index.js';
   document.body.appendChild(script);
@@ -530,6 +532,11 @@ const options = {
         // 如果是显示控制台的选项，需要更新全局变量
         if(sti.id === 'sti-showConsole') {
           sti_showConsole = sti.querySelector('input[type=checkbox]').checked;
+        }
+        // 如果是全景图帧数限制的选项，需要更新全局变量
+        if(sti.id === 'sti-panorama-fps') {
+          sti_panorama_fps = sti.querySelector('select').value;
+          terminal.innerHTML = '全景图帧数限制已更改为 ' + sti_panorama_fps + ' 帧';
         }
         break;
     }
@@ -585,6 +592,10 @@ const options = {
         if(i.id === 'sti-showConsole') {
           sti_showConsole = i.value;
         }
+        // 如果是全景图帧数限制的选项，需要更新全局变量
+        if(i.id === 'sti-panorama-fps') {
+          sti_panorama_fps = i.value;
+        }
       break;
     }
   });
@@ -618,6 +629,10 @@ const options = {
       // 如果是显示控制台的选项，需要更新全局变量
       if(sI.id === 'sti-showConsole') {
         sti_showConsole = value;
+      }
+      // 如果是全景图帧数限制的选项，需要更新全局变量
+      if(sI.id === 'sti-panorama-fps') {
+        sti_panorama_fps = value;
       }
     break;
     }

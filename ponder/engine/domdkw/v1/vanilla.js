@@ -503,8 +503,8 @@ function startPreload() {
           switch(scene.base.create.style){
             case '5x5chessboard':
               // 只存储带命名空间的键名
-              textureUrl['minecraft:white_concrete'] = '/ponder/minecraft/textures/block/white_concrete.png';
-              textureUrl['minecraft:light_gray_concrete'] = '/ponder/minecraft/textures/block/light_gray_concrete.png';
+              textureUrl['minecraft:snow'] = '/ponder/minecraft/textures/block/snow.png';
+              textureUrl['minecraft:clay'] = '/ponder/minecraft/textures/block/clay.png';
               break;
           }
         break;
@@ -586,8 +586,8 @@ function CreateBase(sceneNum){//创建CreateBase场景
         const row = table[i];
         for (let j = 0; j < row.length; j++) {
           const cell = row[j];
-          if(cell === 1){setblock('minecraft:white_concrete', i+cx-2, cy, j+cz-2);}
-          else{setblock('minecraft:light_gray_concrete', i+cx-2, cy, j+cz-2);}
+          if(cell === 1){setblock('minecraft:snow', i+cx-2, cy, j+cz-2);}
+          else{setblock('minecraft:clay', i+cx-2, cy, j+cz-2);}
         }
       }
       break;
@@ -659,10 +659,10 @@ class fragmentDateClock {
   start(){
     this.startTime = Date.now();
   }
-  scene(){//返回相较于当前场景的时间
+  scene(){//返回相对于当前场景的时间
     return Date.now() - this.startTime;
   }
-  fragment(){//返回相较于当前片段的时间
+  fragment(){//返回相对于当前片段的时间
     // 计算前面所有片段的时间总和
     let previousFragmentsTime = 0;
     for(let i = 0; i < playState.currentFragment; i++){
@@ -826,15 +826,136 @@ function updateProgress() {
   checkFragmentSwitch();
 }
 
+// 更新导航箭头的显示状态
+function updateNavigationArrows() {
+  const leftArrow = document.getElementById('ponder-create-btn-left');
+  const rightArrow = document.getElementById('ponder-create-btn-right');
+  
+  if (!leftArrow || !rightArrow) {
+    console.warn('导航箭头按钮未找到');
+    return;
+  }
+  
+  // 如果是第一个场景，隐藏左箭头
+  if (playState.currentScene <= 0) {
+    leftArrow.style.display = 'none';
+  } else {
+    leftArrow.style.display = 'block';
+  }
+  
+  // 如果是最后一个场景，隐藏右箭头
+  if (playState.currentScene >= sceneTotal - 1) {
+    rightArrow.style.display = 'none';
+  } else {
+    rightArrow.style.display = 'block';
+  }
+}
+
+// 清理当前场景资源，但保留素材缓存以优化性能
+function cleanupSceneResources() {
+  // 1. 停止当前视频播放
+  playState.isPlaying = false;
+  
+  // 取消所有动画帧
+  if (animationFrameId) {
+    cancelAnimationFrame(animationFrameId);
+    animationFrameId = null;
+  }
+  
+  // 暂停进度条
+  ProgressBar.pause();
+  
+  // 2. 撤销通过CSS2D创建的所有HTML元素
+  // 查找并移除所有tip相关的HTML元素
+  const tipElements = document.querySelectorAll('.ponder-tip-progress');
+  tipElements.forEach(element => {
+    if (element.parentNode) {
+      element.parentNode.removeChild(element);
+    }
+  });
+  
+  // 3. 清空当前所有场景中的3D对象，但保留材质和几何体缓存
+  // 遍历场景中的所有对象
+  const objectsToRemove = [];
+  for (let i = 0; i < scene.children.length; i++) {
+    const child = scene.children[i];
+    
+    // 保留灯光、相机和CSS2D对象，只移除网格对象
+    if (child.type === 'Mesh' || child.type === 'Group') {
+      objectsToRemove.push(child);
+    }
+  }
+  
+  // 从场景中移除对象
+  objectsToRemove.forEach(obj => {
+    scene.remove(obj);
+    
+    // 释放对象及其子对象的资源
+    if (obj.children && obj.children.length > 0) {
+      // 递归处理子对象
+      const releaseResources = (object) => {
+        if (object.type === 'Mesh') {
+          // 释放几何体和材质资源
+          if (object.geometry) {
+            object.geometry.dispose();
+          }
+          if (object.material) {
+            if (Array.isArray(object.material)) {
+              for (let j = 0; j < object.material.length; j++) {
+                object.material[j].dispose();
+              }
+            } else {
+              object.material.dispose();
+            }
+          }
+        }
+        
+        // 递归处理子对象
+        if (object.children && object.children.length > 0) {
+          for (let i = 0; i < object.children.length; i++) {
+            releaseResources(object.children[i]);
+          }
+        }
+      };
+      
+      releaseResources(obj);
+    }
+  });
+  
+  // 4. 清空所有动画和事件监听器
+  // 取消所有未完成的动画
+  const allAnimationFrames = document.querySelectorAll('[data-animation-frame]');
+  allAnimationFrames.forEach(element => {
+    const frameId = element.getAttribute('data-animation-frame');
+    if (frameId) {
+      cancelAnimationFrame(parseInt(frameId));
+    }
+  });
+  
+  // 5. 重置片段时间时钟
+  if (fragmentClock) {
+    fragmentClock.clear();
+  }
+  
+  // 6. 清除场景总时间缓存
+  sceneTotalTimeCache = null;
+  
+  // 7. 强制渲染一次场景，确保清理生效
+  renderer.render(scene, camera);
+  
+  console.log('场景资源已清理完成，素材缓存已保留');
+}
+
 // 切换到指定场景
 function switchToScene(sceneNum) {
+  // 验证场景索引是否有效
   if (sceneNum < 0 || sceneNum >= sceneTotal) {
     console.error(`场景索引 ${sceneNum} 超出范围 [0, ${sceneTotal-1}]`);
     return;
   }
   
-  // 清理当前场景
-  cleanscene(false, 0.5);
+  // 清理当前场景资源
+  cleanupSceneResources();
   
   // 更新播放状态
   playState.currentScene = sceneNum;
@@ -864,6 +985,9 @@ function switchToScene(sceneNum) {
   setTimeout(() => {
     ProgressBar.start();
   }, 100);
+  
+  // 更新导航箭头的显示状态
+  updateNavigationArrows();
   
   // 如果正在播放，开始播放新场景的第一个片段
   if (playState.isPlaying) {
@@ -907,7 +1031,7 @@ function togglePlayPause() {
       animationFrameId = null;
     }
     // 暂停进度条
-    pauseProgressBar();
+    ProgressBar.pause();
   }
   
   // 更新UI状态
@@ -1288,4 +1412,8 @@ window.ponderButtonManager = new PonderButtonManager();
 
 // 初始化UI渲染
 renderPonderUI();
+
+// 初始化导航箭头状态
+updateNavigationArrows();
+
 window.addEventListener('resize', renderPonderUI);

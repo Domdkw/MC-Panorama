@@ -231,4 +231,5 @@ async function ponderApiLoad() {
     sf('未知的boot类型且缺少js或html配置: ' + JSON.stringify(Process.loader.boot));
     return;
   }
+  loadBox.innerHTML = '';
 }

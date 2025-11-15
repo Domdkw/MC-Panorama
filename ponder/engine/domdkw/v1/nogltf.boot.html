@@ -240,6 +240,7 @@
 </style>
 <script>
   //替换console.log到terminal, 并添加时间戳,同时显示在控制台
+  /*
   const originalConsoleLog = console.log;
   const originalConsoleWarn = console.warn;
   const originalConsoleError = console.error;
@@ -259,7 +260,7 @@
     terminal.innerHTML += `<span style="color: #FF0000;">[${new Date().toLocaleTimeString()}] ${arg.map(item => item.toString()).join(' ')}<br></span>`;
     terminal.scrollTop = terminal.scrollHeight;
   };
-  loadFile('/ponder/engine/domdkw/v1/vanilla.js', 'js', true,'加载engine:vanilla.js');
+  */loadFile('/ponder/engine/domdkw/v1/vanilla.js', 'js', true,'加载engine:vanilla.js');
   function loadTHREECSS2DRenderer() {
     return new Promise(async (resolve, reject) => {
       const {loadstate, loadinfo, rangeblock} = SNLB('CSS2DRenderer', true);
