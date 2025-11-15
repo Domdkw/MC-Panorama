@@ -1,9 +1,9 @@
 # MC-Panorama - Create:Ponder 项目
 
-[![GitHub commit activity](https://img.shields.io/github/commit-activity/t/Domdkw/Web-Ponder)](https://github.com/Domdkw/Web-Ponder/commits/main)
+[![GitHub commit activity](https://img.shields.io/github/commit-activity/t/Domdkw/Web-Ponder)](https://github.com/Domdkw/Web-Ponder/commits/master)
 [![GitHub last commit](https://img.shields.io/github/last-commit/Domdkw/Web-Ponder)](https://github.com/Domdkw/Web-Ponder/commits/master)
 [![GitHub license](https://img.shields.io/github/license/Domdkw/Web-Ponder)](https://github.com/Domdkw/Web-Ponder/blob/main/LICENSE)
-
+[![Netlify Status](https://api.netlify.com/api/v1/badges/e952630e-4b26-42f8-8a65-07ab035ea003/deploy-status)](https://app.netlify.com/projects/domdkw-mc/deploys)
 ## 项目概述
 
 MC-Panorama是一个基于Web的Minecraft物品可视化与交互式学习平台，专注于机械动力(Create)模组的教学和展示。
