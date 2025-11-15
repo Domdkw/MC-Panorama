@@ -1,7 +1,7 @@
 # MC-Panorama - Create:Ponder 项目
 
 [![GitHub commit activity](https://img.shields.io/github/commit-activity/t/Domdkw/Web-Ponder)](https://github.com/Domdkw/Web-Ponder/commits/main)
-[![GitHub last commit](https://img.shields.io/github/last-commit/Domdkw/Web-Ponder)](https://github.com/Domdkw/Web-Ponder/commits/main)
+[![GitHub last commit](https://img.shields.io/github/last-commit/Domdkw/Web-Ponder)](https://github.com/Domdkw/Web-Ponder/commits/master)
 [![GitHub license](https://img.shields.io/github/license/Domdkw/Web-Ponder)](https://github.com/Domdkw/Web-Ponder/blob/main/LICENSE)
 
 ## 项目概述
