@@ -926,10 +926,24 @@ function switchToScene(sceneNum) {
     console.error(`场景索引 ${sceneNum} 超出范围 [0, ${sceneTotal-1}]`);
     return;
   }
-  
-  // 清理当前场景资源
-  cleanscene(false)
-  
+
+  // 清理当前场景的区域
+  let minX = Infinity, minY = Infinity, minZ = Infinity;
+  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+  for (let i = 0; i < scene.children.length; i++) {
+    const child = scene.children[i];
+    if (child.type === 'Mesh') {
+      minX = Math.min(minX, child.position.x);
+      minY = Math.min(minY, child.position.y);
+      minZ = Math.min(minZ, child.position.z);
+      maxX = Math.max(maxX, child.position.x);
+      maxY = Math.max(maxY, child.position.y);
+      maxZ = Math.max(maxZ, child.position.z);
+    }
+  }
+  removearea(minX, minY, minZ, maxX, maxY, maxZ);
+  console.log('清理场景', sceneNum, '的区域');
+
   // 更新播放状态
   playState.currentScene = sceneNum;
   playState.currentFragment = 0;
@@ -961,7 +975,6 @@ function switchToScene(sceneNum) {
   
   // 更新导航箭头的显示状态
   updateNavigationArrows();
-  
   // 如果正在播放，开始播放新场景的第一个片段
   if (playState.isPlaying) {
     // 如果有正在运行的异步操作，取消它
@@ -969,13 +982,13 @@ function switchToScene(sceneNum) {
       playState.currentPromise.cancel();
       playState.currentPromise = null;
     }
-    
-    // 标记为已停止，等待当前异步操作完成
-    playState.isStopped = true;
-    
-    // 播放新场景的第一个片段
-    playFragment(playState.currentFragment);
   }
+  
+  // 标记为已停止，等待当前异步操作完成
+  playState.isStopped = true;
+  
+  // 播放新场景的第一个片段
+  playFragment(playState.currentFragment);
 }
 
 // 切换到上一个场景
