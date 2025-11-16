@@ -42,11 +42,13 @@ THREE.Cache.enabled = true;
 // 片段切换 !!新，类似于M3U8播放器
 let playState = {
   isPlaying: false, //是否正在播放
+  isStopped: false, //是否已停止
   currentScene: 0, //场景
   currentFragment: 0, //片段
-  autoPlay: true, //是否自动播放
+  autoPlay: false, //是否自动播放（默认关闭，防止自动切换场景）
   slowMode: false, //是否慢速模式
   progress: 0, //当前场景进度
+  currentPromise: null // 当前正在执行的Promise，可用于取消
 }
 
 // 资源加载相关变量
@@ -618,35 +620,37 @@ function parseFragment(sceneNum){
   fragmentTotal = scene.fragment.length;
   console.log(`场景${sceneNum}片段总数: ${fragmentTotal}`);
   //删除旧的script
-  const oldScript = document.getElementById('ponderSceneScript');
-  if(oldScript) oldScript.remove();
+  let script = document.getElementById('ponderSceneScript');
   //解析fragment
   let ffunctions = '';
   for(let i = 0; i < scene.fragment.length; i++){
     let command = '';
     const fragment = scene.fragment[i];
+    //2025年11月15日，将片段函数改为生成器函数
     for(let j = 0; j < fragment.length; j++){
-      // 检查是否包含函数调用
+      // 区分同步异步
       const isAsyncCall = ffawait.some(func => {
         // 使用正则表达式检查是否包含函数调用，更灵活的匹配方式
         // 匹配函数名后跟括号的形式，允许前面有空格或其他字符
         const regex = new RegExp(`\\b${func.replace('(', '\\s*\\(')}`);
         return regex.test(fragment[j].trim());
       });
+      // 检查是否包含函数调用
       if(isAsyncCall){
-        // 将 idle 或 tip 调用改为 await
-        command += 'await ' + fragment[j] + ';\n';
+        command += 'yield ' + fragment[j] + ';\n';
       } else {
         command += fragment[j] + ';\n';
       }
     }
-    ffunctions += 'async function ponderFragment'+i+'(){\n'+command+'};\n';
+    ffunctions += 'function* ponderFragment'+i+'(){\n'+command+'};\n';
   }
-  // 创建片段函数
-  const script = document.createElement('script');
-  script.id = 'ponderSceneScript';
+  if(!script) {
+    // 创建片段生成器函数
+    script = document.createElement('script');
+    script.id = 'ponderSceneScript';
+    document.body.appendChild(script);
+  };
   script.textContent = ffunctions;
-  document.body.appendChild(script);
 }
 
 // 创建自定义事件 - 片段播放完成
@@ -676,6 +680,78 @@ class fragmentDateClock {
   }
 }
 
+//!!! 片段播放函数
+// 创建可取消的Promise包装器
+function createCancellablePromise(promise) {
+  let isCancelled = false;
+  
+  const cancellablePromise = new Promise(async (resolve, reject) => {
+    try {
+      const result = await promise;
+      if (!isCancelled) {
+        resolve(result);
+      }
+    } catch (error) {
+      if (!isCancelled) {
+        reject(error);
+      }
+    }
+  });
+  
+  cancellablePromise.cancel = () => {
+    isCancelled = true;
+  };
+  
+  return cancellablePromise;
+}
+
+// 播放指定片段
+async function playFragment(i) {
+  const fragmentFunction = window['ponderFragment' + i];
+  if (!fragmentFunction) return;
+  
+  // 创建生成器对象
+  const generator = fragmentFunction();
+  playState.isStopped = false;
+  playState.isPlaying = true;
+  
+  // 存储当前可取消的Promise引用
+  let currentPromise = null;
+  
+  // 执行片段函数
+  while(!playState.isStopped){
+    try {
+      const {value, done} = generator.next();
+      
+      if (done) {
+        // 片段执行完成，触发退出循环
+        break;
+      }
+      
+      // 如果有返回值且是 Promise，则等待它完成
+      if (value instanceof Promise) {
+        // 创建可取消的Promise
+        currentPromise = createCancellablePromise(value);
+        playState.currentPromise = currentPromise; // 存储到playState中，以便外部可以取消
+        
+        await currentPromise;
+        
+        // 检查是否在等待过程中被停止
+        if (playState.isStopped) {
+          console.log(`片段 ${i} 在异步操作中被停止`);
+          return;
+        }
+      } else {
+        console.log('Fragment returned value:', value);
+      }
+      
+    } catch (error) {
+      console.error(`执行片段 ${i} 时发生错误:`, error);
+      break;
+    }
+  }
+}
+
 // 初始化片段播放
 function initFragmentPlay(){//初始化每个场景的片段播放，每个场景只执行一次
   // 初始化片段时间时钟
@@ -687,9 +763,11 @@ function initFragmentPlay(){//初始化每个场景的片段播放，每个场�
   parseFragment(playState.currentScene);
   
   // 初始化播放状态
-  playState.isPlaying = true;
+  playState.isPlaying = false;
+  playState.isStopped = true;
   playState.currentFragment = 0;
   playState.progress = 0;
+  playState.currentPromise = null; // 初始化当前Promise引用
   
   // 启动片段时间时钟
   fragmentClock.start();
@@ -699,10 +777,7 @@ function initFragmentPlay(){//初始化每个场景的片段播放，每个场�
   window.addEventListener('sceneComplete', handleSceneComplete);
   
   // 开始播放第一个片段
-  const firstFragmentFunction = window['ponderFragment' + playState.currentFragment];
-  if (firstFragmentFunction) {
-    firstFragmentFunction();
-  }
+  playFragment(playState.currentFragment);
   
   // 启动进度检查循环
   startProgressCheck();
@@ -713,12 +788,9 @@ function handleFragmentComplete() {
   // 如果当前片段不是最后一个片段，则切换到下一个片段
   if(playState.currentFragment < fragmentTotal-1) {
     playState.currentFragment++;
-    
+    playState.isStopped = true;
     // 执行下一个片段
-    const nextFragmentFunction = window['ponderFragment' + playState.currentFragment];
-    if (nextFragmentFunction) {
-      nextFragmentFunction();
-    }
+    playFragment(playState.currentFragment);
   } else {
     // 当前场景的所有片段播放完成
     window.dispatchEvent(sceneCompleteEvent);
@@ -736,6 +808,7 @@ function handleSceneComplete() {
   } else {
     // 停止播放
     playState.isPlaying = false;
+    playState.isStopped = true;
     if (animationFrameId) {
       cancelAnimationFrame(animationFrameId);
       animationFrameId = null;
@@ -820,12 +893,6 @@ const ProgressBar = {
   }
 }
 
-// 更新进度 - 现在只用于检查片段切换，不再更新进度条
-function updateProgress() {
-  // 检查是否需要切换片段
-  checkFragmentSwitch();
-}
-
 // 更新导航箭头的显示状态
 function updateNavigationArrows() {
   const leftArrow = document.getElementById('ponder-create-btn-left');
@@ -851,100 +918,6 @@ function updateNavigationArrows() {
   }
 }
 
-// 清理当前场景资源，但保留素材缓存以优化性能
-function cleanupSceneResources() {
-  // 1. 停止当前视频播放
-  playState.isPlaying = false;
-  
-  // 取消所有动画帧
-  if (animationFrameId) {
-    cancelAnimationFrame(animationFrameId);
-    animationFrameId = null;
-  }
-  
-  // 暂停进度条
-  ProgressBar.pause();
-  
-  // 2. 撤销通过CSS2D创建的所有HTML元素
-  // 查找并移除所有tip相关的HTML元素
-  const tipElements = document.querySelectorAll('.ponder-tip-progress');
-  tipElements.forEach(element => {
-    if (element.parentNode) {
-      element.parentNode.removeChild(element);
-    }
-  });
-  
-  // 3. 清空当前所有场景中的3D对象，但保留材质和几何体缓存
-  // 遍历场景中的所有对象
-  const objectsToRemove = [];
-  for (let i = 0; i < scene.children.length; i++) {
-    const child = scene.children[i];
-    
-    // 保留灯光、相机和CSS2D对象，只移除网格对象
-    if (child.type === 'Mesh' || child.type === 'Group') {
-      objectsToRemove.push(child);
-    }
-  }
-  
-  // 从场景中移除对象
-  objectsToRemove.forEach(obj => {
-    scene.remove(obj);
-    
-    // 释放对象及其子对象的资源
-    if (obj.children && obj.children.length > 0) {
-      // 递归处理子对象
-      const releaseResources = (object) => {
-        if (object.type === 'Mesh') {
-          // 释放几何体和材质资源
-          if (object.geometry) {
-            object.geometry.dispose();
-          }
-          if (object.material) {
-            if (Array.isArray(object.material)) {
-              for (let j = 0; j < object.material.length; j++) {
-                object.material[j].dispose();
-              }
-            } else {
-              object.material.dispose();
-            }
-          }
-        }
-        
-        // 递归处理子对象
-        if (object.children && object.children.length > 0) {
-          for (let i = 0; i < object.children.length; i++) {
-            releaseResources(object.children[i]);
-          }
-        }
-      };
-      
-      releaseResources(obj);
-    }
-  });
-  
-  // 4. 清空所有动画和事件监听器
-  // 取消所有未完成的动画
-  const allAnimationFrames = document.querySelectorAll('[data-animation-frame]');
-  allAnimationFrames.forEach(element => {
-    const frameId = element.getAttribute('data-animation-frame');
-    if (frameId) {
-      cancelAnimationFrame(parseInt(frameId));
-    }
-  });
-  
-  // 5. 重置片段时间时钟
-  if (fragmentClock) {
-    fragmentClock.clear();
-  }
-  
-  // 6. 清除场景总时间缓存
-  sceneTotalTimeCache = null;
-  
-  // 7. 强制渲染一次场景，确保清理生效
-  renderer.render(scene, camera);
-  
-  console.log('场景资源已清理完成，素材缓存已保留');
-}
 
 // 切换到指定场景
 function switchToScene(sceneNum) {
@@ -955,7 +928,7 @@ function switchToScene(sceneNum) {
   }
   
   // 清理当前场景资源
-  cleanupSceneResources();
+  cleanscene(false)
   
   // 更新播放状态
   playState.currentScene = sceneNum;
@@ -991,10 +964,17 @@ function switchToScene(sceneNum) {
   
   // 如果正在播放，开始播放新场景的第一个片段
   if (playState.isPlaying) {
-    const firstFragmentFunction = window['ponderFragment' + playState.currentFragment];
-    if (firstFragmentFunction) {
-      firstFragmentFunction();
+    // 如果有正在运行的异步操作，取消它
+    if (playState.currentPromise) {
+      playState.currentPromise.cancel();
+      playState.currentPromise = null;
     }
+    
+    // 标记为已停止，等待当前异步操作完成
+    playState.isStopped = true;
+    
+    // 播放新场景的第一个片段
+    playFragment(playState.currentFragment);
   }
 }
 
@@ -1012,31 +992,6 @@ function nextScene() {
   }
 }
 
-// 切换播放/暂停状态
-function togglePlayPause() {
-  playState.isPlaying = !playState.isPlaying;
-  
-  if (playState.isPlaying) {
-    // 如果当前没有片段在播放，播放当前片段
-    const currentFragmentFunction = window['ponderFragment' + playState.currentFragment];
-    if (currentFragmentFunction) {
-      currentFragmentFunction();
-    }
-    // 重新启动进度检查
-    startProgressCheck();
-  } else {
-    // 暂停播放，取消进度检查
-    if (animationFrameId) {
-      cancelAnimationFrame(animationFrameId);
-      animationFrameId = null;
-    }
-    // 暂停进度条
-    ProgressBar.pause();
-  }
-  
-  // 更新UI状态
-  updateUIState();
-}
 
 // 切换自动播放
 function toggleAutoPlay() {
