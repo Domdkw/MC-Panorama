@@ -37,7 +37,6 @@ window.addEventListener('resize', () => {
 
 // 预定义变量
 let MCTextureMap;
-THREE.Cache.enabled = true;
 
 // 片段切换 !!新，类似于M3U8播放器
 let playState = {
@@ -619,9 +618,15 @@ function parseFragment(sceneNum){
   if(!scene.fragment) return;
   fragmentTotal = scene.fragment.length;
   console.log(`场景${sceneNum}片段总数: ${fragmentTotal}`);
-  //删除旧的script
+  
+  // 强制删除旧的script元素，确保完全清理
   let script = document.getElementById('ponderSceneScript');
-  //解析fragment
+  if (script) {
+    script.remove();
+    script = null;
+  }
+  
+  // 解析fragment
   let ffunctions = '';
   for(let i = 0; i < scene.fragment.length; i++){
     let command = '';
@@ -644,13 +649,14 @@ function parseFragment(sceneNum){
     }
     ffunctions += 'function* ponderFragment'+i+'(){\n'+command+'};\n';
   }
-  if(!script) {
-    // 创建片段生成器函数
-    script = document.createElement('script');
-    script.id = 'ponderSceneScript';
-    document.body.appendChild(script);
-  };
+  
+  // 创建新的script元素
+  script = document.createElement('script');
+  script.id = 'ponderSceneScript';
   script.textContent = ffunctions;
+  document.body.appendChild(script);
+  
+  console.log('解析command完成，已生成新的片段函数');
 }
 
 // 创建自定义事件 - 片段播放完成
@@ -707,10 +713,14 @@ function createCancellablePromise(promise) {
 
 // 播放指定片段
 async function playFragment(i) {
+  // 每次播放片段时都重新获取函数引用，确保使用最新的函数定义
   const fragmentFunction = window['ponderFragment' + i];
-  if (!fragmentFunction) return;
+  if (!fragmentFunction) {
+    console.error(`未找到片段函数 ponderFragment${i}`);
+    return;
+  }
   
-  // 创建生成器对象
+  // 创建新的生成器对象，确保使用最新的函数定义
   const generator = fragmentFunction();
   playState.isStopped = false;
   playState.isPlaying = true;
@@ -928,8 +938,8 @@ function switchToScene(sceneNum) {
   }
 
   // 清理当前场景的区域
-  let minX = Infinity, minY = Infinity, minZ = Infinity;
-  let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+  let minX = 0, minY = 0, minZ = 0;
+  let maxX = 0, maxY = 0, maxZ = 0;
   for (let i = 0; i < scene.children.length; i++) {
     const child = scene.children[i];
     if (child.type === 'Mesh') {
@@ -987,8 +997,11 @@ function switchToScene(sceneNum) {
   // 标记为已停止，等待当前异步操作完成
   playState.isStopped = true;
   
-  // 播放新场景的第一个片段
-  playFragment(playState.currentFragment);
+  // 确保当前异步操作完全停止后再播放新片段
+  setTimeout(() => {
+    // 播放新场景的第一个片段
+    playFragment(playState.currentFragment);
+  }, 100);
 }
 
 // 切换到上一个场景

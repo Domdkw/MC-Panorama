@@ -372,6 +372,7 @@
       const module = await import('three');
       try {
         window.THREE = module;
+        THREE.Cache.enabled = true;
         loadinfo.innerHTML = 'The <span class="file-tag y">three@0.174.0.js</span> module is loaded successfully!';
         rangeblock.style.width = '100%';
         loadstate.style.backgroundColor = '#fff6';
